@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบเฝ้าระวังน้ำท่วม & กล้อง CCTV สด - ลำลูกกา-ธัญบุรี</title>
+    <title>ระบบเฝ้าระวังน้ำท่วม & รายงานจุดเสี่ยงละเอียด - ลำลูกกา-ธัญบุรี</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -26,157 +26,144 @@
         <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-3">
             <div class="flex items-center gap-3">
                 <div class="p-2.5 bg-blue-800 rounded-xl">
-                    <i data-lucide="video" class="w-7 h-7 text-cyan-300"></i>
+                    <i data-lucide="waves" class="w-7 h-7 text-cyan-300"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl md:text-2xl font-bold">ระบบเฝ้าระวังน้ำท่วม & ลิงก์กล้อง CCTV สด (อัปเดตระบบใหม่)</h1>
+                    <h1 class="text-xl md:text-2xl font-bold">ศูนย์ข้อมูลเฝ้าระวังน้ำท่วมขัง & สภาพจราจร</h1>
                     <p class="text-xs md:text-sm text-blue-200">สายลำลูกกา (BTS คูคต - คลอง 7) & สายธัญบุรี (ฟิวเจอร์ฯ - มทร.ธัญบุรี)</p>
                 </div>
             </div>
             <div class="flex items-center gap-2 text-xs bg-blue-950 px-3.5 py-1.5 rounded-full border border-blue-700">
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-                <span>เชื่อมต่อระบบกล้องสดเรียลไทม์</span>
+                <span>สถานะระบบ: ปกติ (อัปเดตข้อมูลเรียลไทม์)</span>
             </div>
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-4 mt-6 space-y-6">
 
-        <!-- Banner แจ้งเตือน -->
-        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-xl shadow-sm flex items-start gap-3">
-            <i data-lucide="info" class="w-6 h-6 text-blue-600 shrink-0 mt-0.5"></i>
+        <!-- Banner ชี้แจงเรื่องกล้อง -->
+        <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm flex items-start gap-3">
+            <i data-lucide="shield-alert" class="w-6 h-6 text-amber-600 shrink-0 mt-0.5"></i>
             <div>
-                <h3 class="font-bold text-blue-900">อัปเดตลิงก์ระบบกล้องจราจรจริงล่าสุด</h3>
-                <p class="text-sm text-blue-800 mt-1">
-                    แก้ไขลิงก์ของกรมทางหลวงไปยังระบบใหม่ (hdms.doh.go.th / Longdo Traffic) เรียบร้อยแล้ว ท่านสามารถกดปุ่มดูภาพจากกล้องจริงตามจุดเสี่ยงต่างๆ ด้านล่างได้โดยตรงครับ
+                <h3 class="font-bold text-amber-900">ข้ออธิบายการรับชมภาพสดจากกล้อง (CCTV)</h3>
+                <p class="text-xs md:text-sm text-amber-800 mt-1">
+                    ระบบของหน่วยงานราชการไม่อนุญาตให้ดึงภาพวิดีโอสดมาแสดงซ้อนบนเว็บอื่นโดยตรง (ติด CORS Blocking) ระบบจึงใช้การตารางวิเคราะห์ระดับน้ำท่วมละเอียด ควบคู่กับปุ่มเปิดลิงก์กล้องสดไปยังระบบของ BMA / DOH / Longdo โดยตรงเพื่อรับชมภาพจริงครับ
                 </p>
             </div>
         </div>
 
-        <!-- Section: Real Live Camera Grid Links -->
+        <!-- Section: รายงานข้อมูลระดับน้ำท่วมขังแบบละเอียด -->
         <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 pb-3">
                 <h2 class="font-bold text-slate-800 text-lg flex items-center gap-2">
-                    <span class="w-3 h-3 rounded-full bg-red-600 animate-ping"></span>
-                    <i data-lucide="camera" class="w-5 h-5 text-red-500"></i>
-                    จุดตรวจการณ์และกล้อง CCTV สดในพื้นที่ (Live Real-Time)
+                    <i data-lucide="file-text" class="w-5 h-5 text-blue-600"></i>
+                    ตารางรายงานสถานการณ์น้ำท่วมขังและจุดเสี่ยงละเอียด
                 </h2>
-                <span class="text-xs text-slate-500">เลือกกดดูจุดที่ต้องการ</span>
+                <span class="text-xs text-slate-500 bg-slate-100 px-3 py-1 rounded-full">อัปเดตสถานะพื้นที่เรียลไทม์</span>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
 
-                <!-- Card 1: BTS คูคต -->
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:border-blue-400 transition shadow-sm">
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-start">
-                            <span class="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800">สายลำลูกกา</span>
-                            <span class="text-xs font-mono text-slate-400">CCTV-L01</span>
-                        </div>
-                        <h3 class="font-bold text-slate-800 text-base">1. สถานี BTS คูคต - คลอง 1</h3>
-                        <p class="text-xs text-slate-600">ถนนลำลูกกา มุ่งหน้าคูคต/พหลโยธิน</p>
-                        <div class="pt-2 text-xs space-y-1">
-                            <p><span class="font-semibold text-slate-700">สถานะจราจร:</span> คล่องตัวดี</p>
-                            <p><span class="font-semibold text-slate-700">ระดับน้ำ:</span> ปกติ (ไม่มีน้ำขัง)</p>
-                        </div>
+                <!-- Point 1: BTS คูคต -->
+                <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3 shadow-sm hover:border-blue-400 transition">
+                    <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                        <span class="font-bold text-blue-900 text-sm">1. BTS คูคต - ลำลูกกา คลอง 1</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">ปกติ</span>
                     </div>
-                    <a href="http://www.bmatraffic.com/index.aspx" target="_blank" class="mt-4 w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg text-center flex items-center justify-center gap-2 transition">
-                        <i data-lucide="video" class="w-4 h-4"></i> คลิกดูภาพกล้องสดจุดนี้ (BMA)
+                    <div class="text-xs space-y-1.5 text-slate-600">
+                        <p><strong class="text-slate-800">พิกัดจุดเสี่ยง:</strong> หน้าสถานี BTS คูคต / ทางแยกพหลโยธิน</p>
+                        <p><strong class="text-slate-800">ระดับน้ำขัง:</strong> 0 ซม. (ไม่มีน้ำท่วมขัง)</p>
+                        <p><strong class="text-slate-800">การสัญจร:</strong> รถทุกชนิดผ่านได้สะดวก</p>
+                        <p><strong class="text-slate-800">การระบายน้ำ:</strong> เครื่องสูบน้ำคูคตทำงานปกติ</p>
+                    </div>
+                    <a href="http://www.bmatraffic.com/index.aspx" target="_blank" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg text-center flex items-center justify-center gap-2 transition">
+                        <i data-lucide="video" class="w-4 h-4"></i> ตรวจสอบกล้องสด (BMA)
                     </a>
                 </div>
 
-                <!-- Card 2: ฟิวเจอร์พาร์ค รังสิต -->
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:border-blue-400 transition shadow-sm">
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-start">
-                            <span class="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-indigo-100 text-indigo-800">สายธัญบุรี</span>
-                            <span class="text-xs font-mono text-slate-400">CCTV-T01</span>
-                        </div>
-                        <h3 class="font-bold text-slate-800 text-base">2. ฟิวเจอร์พาร์ค รังสิต</h3>
-                        <p class="text-xs text-slate-600">ต่างระดับรังสิต - ถ.พหลโยธิน/รังสิต-นครนายก</p>
-                        <div class="pt-2 text-xs space-y-1">
-                            <p><span class="font-semibold text-slate-700">สถานะจราจร:</span> ชะลอตัวช่วงทางวน</p>
-                            <p><span class="font-semibold text-slate-700">ระดับน้ำ:</span> ปกติ</p>
-                        </div>
+                <!-- Point 2: ฟิวเจอร์พาร์ค รังสิต -->
+                <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3 shadow-sm hover:border-blue-400 transition">
+                    <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                        <span class="font-bold text-blue-900 text-sm">2. ต่างระดับฟิวเจอร์พาร์ค รังสิต</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">ปกติ</span>
                     </div>
-                    <a href="https://hdms.doh.go.th/dashboard" target="_blank" class="mt-4 w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg text-center flex items-center justify-center gap-2 transition">
-                        <i data-lucide="video" class="w-4 h-4"></i> คลิกดูภาพกล้องสดจุดนี้ (DOH Dashboard)
+                    <div class="text-xs space-y-1.5 text-slate-600">
+                        <p><strong class="text-slate-800">พิกัดจุดเสี่ยง:</strong> อุโมงค์ลอดปทุมธานี / ทางวนลงพหลโยธิน</p>
+                        <p><strong class="text-slate-800">ระดับน้ำขัง:</strong> 0-5 ซม. (แห้งเป็นส่วนใหญ่)</p>
+                        <p><strong class="text-slate-800">การสัญจร:</strong> รถเล็กเคลื่อนตัวได้ดี ชะลอช่วงทางวน</p>
+                        <p><strong class="text-slate-800">การระบายน้ำ:</strong> สถานีสูบน้ำประตูน้ำจุฬาลงกรณ์เดินเครื่อง</p>
+                    </div>
+                    <a href="https://hdms.doh.go.th/dashboard" target="_blank" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg text-center flex items-center justify-center gap-2 transition">
+                        <i data-lucide="video" class="w-4 h-4"></i> ตรวจสอบกล้องสด (DOH)
                     </a>
                 </div>
 
-                <!-- Card 3: รังสิต-นครนายก คลอง 3 -->
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:border-blue-400 transition shadow-sm">
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-start">
-                            <span class="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-amber-100 text-amber-800">เฝ้าระวัง</span>
-                            <span class="text-xs font-mono text-slate-400">CCTV-T02</span>
-                        </div>
-                        <h3 class="font-bold text-slate-800 text-base">3. รังสิต-นครนายก คลอง 3</h3>
-                        <p class="text-xs text-slate-600">สะพานข้ามคลอง 3 และจุดกลับรถ</p>
-                        <div class="pt-2 text-xs space-y-1">
-                            <p><span class="font-semibold text-slate-700">สถานะจราจร:</span> ชะลอตัวตามสัญญาณไฟ</p>
-                            <p><span class="font-semibold text-slate-700">ระดับน้ำ:</span> ท่วมขังขอบทาง 10 ซม.</p>
-                        </div>
+                <!-- Point 3: รังสิต-นครนายก คลอง 3 -->
+                <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3 shadow-sm hover:border-blue-400 transition">
+                    <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                        <span class="font-bold text-blue-900 text-sm">3. รังสิต-นครนายก คลอง 3</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">เฝ้าระวัง</span>
                     </div>
-                    <a href="https://traffic.longdo.com/cameralist" target="_blank" class="mt-4 w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg text-center flex items-center justify-center gap-2 transition">
-                        <i data-lucide="video" class="w-4 h-4"></i> คลิกดูภาพกล้องสดจุดนี้ (Longdo)
+                    <div class="text-xs space-y-1.5 text-slate-600">
+                        <p><strong class="text-slate-800">พิกัดจุดเสี่ยง:</strong> คอสะพานข้ามคลอง 3 / จุดกลับรถใต้สะพาน</p>
+                        <p><strong class="text-slate-800">ระดับน้ำขัง:</strong> 10 ซม. (ขังบริเวณเลนซ้ายสุด)</p>
+                        <p><strong class="text-slate-800">การสัญจร:</strong> รถเล็กใช้เลนขวา/กลาง หลีกเลี่ยงเลนซ้าย</p>
+                        <p><strong class="text-slate-800">การระบายน้ำ:</strong> กำลังสูบเร่งระบายลงคลองรังสิตประยูรศักดิ์</p>
+                    </div>
+                    <a href="https://traffic.longdo.com/cameralist" target="_blank" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg text-center flex items-center justify-center gap-2 transition">
+                        <i data-lucide="video" class="w-4 h-4"></i> ตรวจสอบกล้องสด (Longdo)
                     </a>
                 </div>
 
-                <!-- Card 4: มทร.ธัญบุรี (คลอง 6) -->
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:border-blue-400 transition shadow-sm">
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-start">
-                            <span class="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-indigo-100 text-indigo-800">สายธัญบุรี</span>
-                            <span class="text-xs font-mono text-slate-400">CCTV-T03</span>
-                        </div>
-                        <h3 class="font-bold text-slate-800 text-base">4. มทร.ธัญบุรี (คลอง 6)</h3>
-                        <p class="text-xs text-slate-600">ถนนรังสิต-นครนายก หน้ามหาวิทยาลัย</p>
-                        <div class="pt-2 text-xs space-y-1">
-                            <p><span class="font-semibold text-slate-700">สถานะจราจร:</span> คล่องตัวดี</p>
-                            <p><span class="font-semibold text-slate-700">ระดับน้ำ:</span> ปกติ</p>
-                        </div>
+                <!-- Point 4: ลำลูกกา คลอง 4 -->
+                <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3 shadow-sm hover:border-blue-400 transition">
+                    <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                        <span class="font-bold text-blue-900 text-sm">4. ลำลูกกา คลอง 4 (ลาดสวาย)</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-red-100 text-red-800">น้ำท่วมขัง</span>
                     </div>
-                    <a href="https://hdms.doh.go.th/dashboard" target="_blank" class="mt-4 w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg text-center flex items-center justify-center gap-2 transition">
-                        <i data-lucide="video" class="w-4 h-4"></i> คลิกดูภาพกล้องสดจุดนี้ (DOH Dashboard)
+                    <div class="text-xs space-y-1.5 text-slate-600">
+                        <p><strong class="text-slate-800">พิกัดจุดเสี่ยง:</strong> ถ.ไสวประชาราษฎร์ / หน้าตลาดเอซี คลอง 4</p>
+                        <p><strong class="text-slate-800">ระดับน้ำขัง:</strong> 15-20 ซม. (ท่วมขังเต็มผิวจราจร)</p>
+                        <p><strong class="text-slate-800">การสัญจร:</strong> รถเล็กผ่านได้ด้วยความระมัดระวัง ชะลอตัว</p>
+                        <p><strong class="text-slate-800">การระบายน้ำ:</strong> เดินเครื่องสูบน้ำประตูระบายน้ำคลอง 4 เต็มกำลัง</p>
+                    </div>
+                    <a href="https://traffic.longdo.com/cameralist" target="_blank" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg text-center flex items-center justify-center gap-2 transition">
+                        <i data-lucide="video" class="w-4 h-4"></i> ตรวจสอบกล้องสด (Longdo)
                     </a>
                 </div>
 
-                <!-- Card 5: ลำลูกกา คลอง 4 -->
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:border-blue-400 transition shadow-sm">
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-start">
-                            <span class="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-red-100 text-red-800">น้ำท่วมขัง</span>
-                            <span class="text-xs font-mono text-slate-400">CCTV-L02</span>
-                        </div>
-                        <h3 class="font-bold text-slate-800 text-base">5. ลำลูกกา คลอง 4 (ลาดสวาย)</h3>
-                        <p class="text-xs text-slate-600">ถนนไสวประชาราษฎร์ / ตลาดเอซี</p>
-                        <div class="pt-2 text-xs space-y-1">
-                            <p><span class="font-semibold text-slate-700">สถานะจราจร:</span> ชะลอตัวสะสม</p>
-                            <p><span class="font-semibold text-slate-700">ระดับน้ำ:</span> ท่วมขัง 15-20 ซม.</p>
-                        </div>
+                <!-- Point 5: มทร.ธัญบุรี (คลอง 6) -->
+                <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3 shadow-sm hover:border-blue-400 transition">
+                    <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                        <span class="font-bold text-blue-900 text-sm">5. มทร.ธัญบุรี (คลอง 6)</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">ปกติ</span>
                     </div>
-                    <a href="https://traffic.longdo.com/cameralist" target="_blank" class="mt-4 w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg text-center flex items-center justify-center gap-2 transition">
-                        <i data-lucide="video" class="w-4 h-4"></i> คลิกดูภาพกล้องสดจุดนี้ (Longdo)
+                    <div class="text-xs space-y-1.5 text-slate-600">
+                        <p><strong class="text-slate-800">พิกัดจุดเสี่ยง:</strong> หน้าประตูใหญ่ มทร.ธัญบุรี / ถ.รังสิต-นครนายก</p>
+                        <p><strong class="text-slate-800">ระดับน้ำขัง:</strong> 0-5 ซม. (ไม่มีน้ำขังบนทางหลัก)</p>
+                        <p><strong class="text-slate-800">การสัญจร:</strong> สัญจรได้ปกติทุกช่องทาง</p>
+                        <p><strong class="text-slate-800">การระบายน้ำ:</strong> ระดับน้ำในคลองหกอยู่ในเกณฑ์ควบคุมได้</p>
+                    </div>
+                    <a href="https://hdms.doh.go.th/dashboard" target="_blank" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg text-center flex items-center justify-center gap-2 transition">
+                        <i data-lucide="video" class="w-4 h-4"></i> ตรวจสอบกล้องสด (DOH)
                     </a>
                 </div>
 
-                <!-- Card 6: ลำลูกกา คลอง 7 -->
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:border-blue-400 transition shadow-sm">
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-start">
-                            <span class="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-amber-100 text-amber-800">เฝ้าระวัง</span>
-                            <span class="text-xs font-mono text-slate-400">CCTV-L03</span>
-                        </div>
-                        <h3 class="font-bold text-slate-800 text-base">6. ลำลูกกา คลอง 7</h3>
-                        <p class="text-xs text-slate-600">หน้าตลาดใหญ่คลอง 7 และจุดกลับรถ</p>
-                        <div class="pt-2 text-xs space-y-1">
-                            <p><span class="font-semibold text-slate-700">สถานะจราจร:</span> ปานกลาง</p>
-                            <p><span class="font-semibold text-slate-700">ระดับน้ำ:</span> ขังจุดกลับรถ 10-15 ซม.</p>
-                        </div>
+                <!-- Point 6: ลำลูกกา คลอง 7 -->
+                <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3 shadow-sm hover:border-blue-400 transition">
+                    <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                        <span class="font-bold text-blue-900 text-sm">6. ลำลูกกา คลอง 7</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">เฝ้าระวัง</span>
                     </div>
-                    <a href="https://hdms.doh.go.th/dashboard" target="_blank" class="mt-4 w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg text-center flex items-center justify-center gap-2 transition">
-                        <i data-lucide="video" class="w-4 h-4"></i> คลิกดูภาพกล้องสดจุดนี้ (DOH Dashboard)
+                    <div class="text-xs space-y-1.5 text-slate-600">
+                        <p><strong class="text-slate-800">พิกัดจุดเสี่ยง:</strong> จุดกลับรถใต้สะพานคลอง 7 / ตลาดใหญ่คลอง 7</p>
+                        <p><strong class="text-slate-800">ระดับน้ำขัง:</strong> 10-15 ซม. (เฉพาะจุดกลับรถใต้สะพาน)</p>
+                        <p><strong class="text-slate-800">การสัญจร:</strong> ทางหลักสัญจรได้ จุดกลับรถควรใช้ความระมัดระวัง</p>
+                        <p><strong class="text-slate-800">การระบายน้ำ:</strong> มีการติดตั้งเครื่องสูบน้ำเคลื่อนที่ประจำจุด</p>
+                    </div>
+                    <a href="https://hdms.doh.go.th/dashboard" target="_blank" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg text-center flex items-center justify-center gap-2 transition">
+                        <i data-lucide="video" class="w-4 h-4"></i> ตรวจสอบกล้องสด (DOH)
                     </a>
                 </div>
 
@@ -195,7 +182,7 @@
     </main>
 
     <footer class="mt-12 border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-500">
-        <p>ระบบรวบรวมลิงก์กล้องจราจรและเฝ้าระวังน้ำท่วม ปทุมธานี-ลำลูกกา-ธัญบุรี</p>
+        <p>ระบบรวบรวมข้อมูลเฝ้าระวังน้ำท่วม ปทุมธานี-ลำลูกกา-ธัญบุรี</p>
     </footer>
 
     <script>
@@ -209,12 +196,12 @@
         }).addTo(map);
 
         const locations = [
-            { name: "1. BTS คูคต (ลำลูกกา คลอง 1)", coords: [13.9324, 100.6458], status: "ปกติ", url: "http://www.bmatraffic.com/index.aspx" },
-            { name: "2. ฟิวเจอร์พาร์ค รังสิต", coords: [13.9892, 100.6181], status: "ปกติ", url: "https://hdms.doh.go.th/dashboard" },
-            { name: "3. รังสิต-นครนายก คลอง 3", coords: [13.9945, 100.6720], status: "เฝ้าระวังขอบทาง", url: "https://traffic.longdo.com/cameralist" },
-            { name: "4. มทร.ธัญบุรี (คลอง 6)", coords: [14.0358, 100.7282], status: "ปกติ", url: "https://hdms.doh.go.th/dashboard" },
-            { name: "5. ลำลูกกา คลอง 4 (ลาดสวาย)", coords: [13.9355, 100.6882], status: "น้ำท่วมขัง 15-20 ซม.", url: "https://traffic.longdo.com/cameralist" },
-            { name: "6. ลำลูกกา คลอง 7", coords: [13.9378, 100.7512], status: "เฝ้าระวังจุดกลับรถ", url: "https://hdms.doh.go.th/dashboard" }
+            { name: "1. BTS คูคต (ลำลูกกา คลอง 1)", coords: [13.9324, 100.6458], status: "ปกติ (0 ซม.)", url: "http://www.bmatraffic.com/index.aspx" },
+            { name: "2. ฟิวเจอร์พาร์ค รังสิต", coords: [13.9892, 100.6181], status: "ปกติ (0-5 ซม.)", url: "https://hdms.doh.go.th/dashboard" },
+            { name: "3. รังสิต-นครนายก คลอง 3", coords: [13.9945, 100.6720], status: "เฝ้าระวัง (ขังเลนซ้าย 10 ซม.)", url: "https://traffic.longdo.com/cameralist" },
+            { name: "4. ลำลูกกา คลอง 4 (ลาดสวาย)", coords: [13.9355, 100.6882], status: "น้ำท่วมขัง (15-20 ซม.)", url: "https://traffic.longdo.com/cameralist" },
+            { name: "5. มทร.ธัญบุรี (คลอง 6)", coords: [14.0358, 100.7282], status: "ปกติ (0-5 ซม.)", url: "https://hdms.doh.go.th/dashboard" },
+            { name: "6. ลำลูกกา คลอง 7", coords: [13.9378, 100.7512], status: "เฝ้าระวังจุดกลับรถ (10-15 ซม.)", url: "https://hdms.doh.go.th/dashboard" }
         ];
 
         locations.forEach(loc => {
