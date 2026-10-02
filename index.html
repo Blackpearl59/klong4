@@ -1,219 +1,430 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบเฝ้าระวังน้ำท่วม & รายงานจุดเสี่ยงละเอียด - ลำลูกกา-ธัญบุรี</title>
-    
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Leaflet OpenStreetMap CSS & JS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Sarabun', sans-serif; }
-        #map { height: 420px; width: 100%; border-radius: 12px; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ระดับน้ำท่วมถนน กทม.</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f5f4; --surface:#fcfcfb; --card:#ffffff; --line:#e3e4e2; --line-2:#cfd1ce;
+  --ink:#1c1d1b; --ink-2:#4d4f4b; --ink-3:#7a7c77; --accent:#2563c9; --series:#2a6fdb;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b; --off:#8b8d88;
+  --good-bg:#e8f6e8; --warn-bg:#fff5df; --crit-bg:#fbeaea; --off-bg:#eeefed;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121211; --surface:#1a1a19; --card:#1f1f1e; --line:#30312f; --line-2:#3d3e3b;
+    --ink:#ececea; --ink-2:#b9bab6; --ink-3:#8c8e89; --accent:#6ea0ff; --series:#6ea0ff;
+    --good-bg:#14301a; --warn-bg:#3a2e10; --crit-bg:#3d1b1b; --off-bg:#2a2a29;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.5 "IBM Plex Sans Thai",system-ui,sans-serif}
+button,input,select{font:inherit;color:inherit}
+header{padding:14px 16px 10px;border-bottom:1px solid var(--line);background:var(--card)}
+.top{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
+h1{font-size:18px;margin:0;font-weight:600}
+.sub{color:var(--ink-3);font-size:12.5px}
+.btn{border:1px solid var(--line-2);background:var(--card);border-radius:8px;padding:6px 12px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--ink-3)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:4px 12px 4px 8px;background:var(--card);cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.chip b{font-weight:600}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.controls input{flex:1 1 220px;min-width:0;border:1px solid var(--line-2);background:var(--surface);border-radius:8px;padding:6px 10px}
+.controls label{display:flex;align-items:center;gap:6px;color:var(--ink-2);font-size:13px}
+main{display:grid;grid-template-columns:minmax(0,1fr) 400px;height:calc(100% - var(--hh,150px))}
+#map{min-height:320px;background:var(--surface)}
+aside{border-left:1px solid var(--line);background:var(--card);overflow:auto;display:flex;flex-direction:column}
+#list{list-style:none;margin:0;padding:0}
+#list li{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);cursor:pointer}
+#list li:hover,#list li.sel{background:var(--bg)}
+.nm{font-weight:500;line-height:1.3}
+.meta{color:var(--ink-3);font-size:12px}
+.depth{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.depth small{font-weight:400;color:var(--ink-3)}
+.badge{display:inline-flex;align-items:center;gap:5px;border-radius:6px;padding:1px 8px;font-size:12px;font-weight:500;color:var(--ink)}
+.b-flooding{background:var(--crit-bg)} .b-minor_flood{background:var(--warn-bg)} .b-normal{background:var(--good-bg)} .b-malfunction{background:var(--off-bg)}
+#detail{display:none;padding:16px;border-bottom:1px solid var(--line)}
+#detail.on{display:block}
+.dhead{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.dhead h2{font-size:16px;margin:0 0 2px;font-weight:600;line-height:1.35}
+.hero{display:flex;align-items:baseline;gap:10px;margin:12px 0 4px}
+.hero .v{font-size:40px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.hero .u{color:var(--ink-3)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin:10px 0;font-size:13px}
+.grid2 div span{display:block;color:var(--ink-3);font-size:12px}
+.advice{border-radius:8px;padding:8px 10px;font-size:13px;margin:8px 0}
+.sec{font-weight:600;margin:14px 0 6px;font-size:13.5px}
+.chart{position:relative}
+.chart svg{display:block;width:100%;height:150px}
+.tip{position:absolute;pointer-events:none;background:var(--card);border:1px solid var(--line-2);border-radius:6px;padding:3px 8px;font-size:12px;white-space:nowrap;display:none;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.cams{display:grid;gap:10px}
+.cam{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#000}
+.cam video,.cam img{display:block;width:100%;aspect-ratio:16/9;object-fit:contain;background:#000}
+.cam .cap{background:var(--card);padding:6px 10px;font-size:12px;color:var(--ink-2);display:flex;justify-content:space-between;gap:8px}
+.cam .msg{aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;text-align:center;color:#ddd;font-size:12.5px;padding:12px}
+.note{color:var(--ink-3);font-size:12px}
+a{color:var(--accent)}
+.empty{padding:24px 16px;color:var(--ink-3)}
+.err{margin:12px 16px;padding:10px 12px;border-radius:8px;background:var(--crit-bg);font-size:13px}
+.camicon{background:#1c1d1b;color:#fff;border:2px solid #fff;border-radius:6px;width:22px!important;height:22px!important;display:flex;align-items:center;justify-content:center;font-size:12px}
+.leaflet-container{font:inherit}
+@media (max-width:860px){
+  main{grid-template-columns:1fr;grid-template-rows:45vh auto;height:auto}
+  aside{border-left:0;border-top:1px solid var(--line);overflow:visible}
+}
+</style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen pb-12">
+<body>
+<header id="hdr">
+  <div class="top">
+    <div>
+      <h1>ระดับน้ำท่วมถนนและอุโมงค์ กทม. (เรียลไทม์)</h1>
+      <div class="sub" id="upd">กำลังโหลดข้อมูล…</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" id="near">📍 ใกล้ฉัน</button>
+      <button class="btn primary" id="reload">รีเฟรช</button>
+    </div>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="controls">
+    <input id="q" type="search" placeholder="ค้นหาถนน / เขต / จุด เช่น รามคำแหง, ลาดกระบัง, อุโมงค์">
+    <label><input type="checkbox" id="onlyMain"> ถนนสายหลักเท่านั้น</label>
+    <label><input type="checkbox" id="showCams" checked> แสดงกล้อง CCTV บนแผนที่</label>
+  </div>
+</header>
+<main>
+  <div id="map"></div>
+  <aside>
+    <section id="detail" aria-live="polite"></section>
+    <div id="errbox"></div>
+    <ul id="list"></ul>
+  </aside>
+</main>
 
-    <!-- Header -->
-    <header class="bg-blue-900 text-white shadow-lg sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-3">
-            <div class="flex items-center gap-3">
-                <div class="p-2.5 bg-blue-800 rounded-xl">
-                    <i data-lucide="waves" class="w-7 h-7 text-cyan-300"></i>
-                </div>
-                <div>
-                    <h1 class="text-xl md:text-2xl font-bold">ศูนย์ข้อมูลเฝ้าระวังน้ำท่วมขัง & สภาพจราจร</h1>
-                    <p class="text-xs md:text-sm text-blue-200">สายลำลูกกา (BTS คูคต - คลอง 7) & สายธัญบุรี (ฟิวเจอร์ฯ - มทร.ธัญบุรี)</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-2 text-xs bg-blue-950 px-3.5 py-1.5 rounded-full border border-blue-700">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-                <span>สถานะระบบ: ปกติ (อัปเดตข้อมูลเรียลไทม์)</span>
-            </div>
-        </div>
-    </header>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js"></script>
+<script>
+/* ---------- แหล่งข้อมูล ----------
+ * ระดับน้ำ/กล้องจุดวัด: ระบบตรวจวัดน้ำท่วมถนน สำนักการระบายน้ำ กทม. (floodbangkok.bangkok.go.th) — API เปิด CORS
+ * กล้องจราจรเพิ่มเติม: iTIC / Longdo Traffic (camera.longdo.com) — API เปิด CORS
+ */
+const API = 'https://floodbangkok.bangkok.go.th/bkk/dds/services/api/floods/v1/items/';
+const ITIC = 'https://camera.longdo.com/feed/?command=json';
+const OFFICIAL = code => 'https://floodbangkok.bangkok.go.th/device-info?sensor_profile_id=' + encodeURIComponent(code);
+const REFRESH_MS = 5 * 60 * 1000;
+const STALE_MS = 30 * 60 * 1000;
 
-    <main class="max-w-7xl mx-auto px-4 mt-6 space-y-6">
+const STATUS = {
+  flooding:    {label:'น้ำท่วม',          icon:'⛔', color:'var(--crit)', hex:'#d03b3b', rank:0},
+  minor_flood: {label:'น้ำท่วมเล็กน้อย',  icon:'⚠️', color:'var(--warn)', hex:'#fab219', rank:1},
+  normal:      {label:'ปกติ',             icon:'✅', color:'var(--good)', hex:'#0ca30c', rank:2},
+  malfunction: {label:'ขัดข้อง/ไม่มีข้อมูล', icon:'⏸', color:'var(--off)',  hex:'#8b8d88', rank:3},
+};
 
-        <!-- Banner ชี้แจงเรื่องกล้อง -->
-        <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm flex items-start gap-3">
-            <i data-lucide="shield-alert" class="w-6 h-6 text-amber-600 shrink-0 mt-0.5"></i>
-            <div>
-                <h3 class="font-bold text-amber-900">ข้ออธิบายการรับชมภาพสดจากกล้อง (CCTV)</h3>
-                <p class="text-xs md:text-sm text-amber-800 mt-1">
-                    ระบบของหน่วยงานราชการไม่อนุญาตให้ดึงภาพวิดีโอสดมาแสดงซ้อนบนเว็บอื่นโดยตรง (ติด CORS Blocking) ระบบจึงใช้การตารางวิเคราะห์ระดับน้ำท่วมละเอียด ควบคู่กับปุ่มเปิดลิงก์กล้องสดไปยังระบบของ BMA / DOH / Longdo โดยตรงเพื่อรับชมภาพจริงครับ
-                </p>
-            </div>
-        </div>
+const state = {sensors:[], camsBySensor:{}, itic:[], filter:null, q:'', onlyMain:false, sel:null, me:null};
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtTime = ms => new Date(ms).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+const ago = ms => { const m = Math.round((Date.now()-ms)/60000); return m < 1 ? 'เมื่อสักครู่' : m < 60 ? m+' นาทีที่แล้ว' : Math.round(m/60)+' ชม.ที่แล้ว'; };
 
-        <!-- Section: รายงานข้อมูลระดับน้ำท่วมขังแบบละเอียด -->
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-100 pb-3">
-                <h2 class="font-bold text-slate-800 text-lg flex items-center gap-2">
-                    <i data-lucide="file-text" class="w-5 h-5 text-blue-600"></i>
-                    ตารางรายงานสถานการณ์น้ำท่วมขังและจุดเสี่ยงละเอียด
-                </h2>
-                <span class="text-xs text-slate-500 bg-slate-100 px-3 py-1 rounded-full">อัปเดตสถานะพื้นที่เรียลไทม์</span>
-            </div>
+async function getJSON(url, timeout = 20000){
+  const ac = new AbortController(); const t = setTimeout(()=>ac.abort(), timeout);
+  try { const r = await fetch(url, {signal:ac.signal}); if(!r.ok) throw new Error('HTTP '+r.status); return await r.json(); }
+  finally { clearTimeout(t); }
+}
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+/* ---------- แผนที่ ---------- */
+document.documentElement.style.setProperty('--hh', $('hdr').offsetHeight + 'px');
+addEventListener('resize', ()=>document.documentElement.style.setProperty('--hh', $('hdr').offsetHeight + 'px'));
+const map = L.map('map', {zoomControl:true}).setView([13.75, 100.56], 11);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap | ข้อมูล: สำนักการระบายน้ำ กทม., iTIC/Longdo'}).addTo(map);
+const sensorLayer = L.layerGroup().addTo(map);
+const camLayer = L.layerGroup().addTo(map);
+const markers = {};
 
-                <!-- Point 1: BTS คูคต -->
-                <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3 shadow-sm hover:border-blue-400 transition">
-                    <div class="flex justify-between items-center border-b border-slate-200 pb-2">
-                        <span class="font-bold text-blue-900 text-sm">1. BTS คูคต - ลำลูกกา คลอง 1</span>
-                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">ปกติ</span>
-                    </div>
-                    <div class="text-xs space-y-1.5 text-slate-600">
-                        <p><strong class="text-slate-800">พิกัดจุดเสี่ยง:</strong> หน้าสถานี BTS คูคต / ทางแยกพหลโยธิน</p>
-                        <p><strong class="text-slate-800">ระดับน้ำขัง:</strong> 0 ซม. (ไม่มีน้ำท่วมขัง)</p>
-                        <p><strong class="text-slate-800">การสัญจร:</strong> รถทุกชนิดผ่านได้สะดวก</p>
-                        <p><strong class="text-slate-800">การระบายน้ำ:</strong> เครื่องสูบน้ำคูคตทำงานปกติ</p>
-                    </div>
-                    <a href="http://www.bmatraffic.com/index.aspx" target="_blank" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg text-center flex items-center justify-center gap-2 transition">
-                        <i data-lucide="video" class="w-4 h-4"></i> ตรวจสอบกล้องสด (BMA)
-                    </a>
-                </div>
+function sensorIcon(s){
+  const st = STATUS[s.status]; const big = s.status==='flooding' || s.status==='minor_flood';
+  const r = big ? 9 : 6;
+  return L.divIcon({className:'', iconSize:[r*2+4,r*2+4], html:
+    `<div style="width:${r*2}px;height:${r*2}px;border-radius:50%;background:${st.hex};border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.35)${s.isTunnel?';border-radius:3px':''}"></div>`});
+}
 
-                <!-- Point 2: ฟิวเจอร์พาร์ค รังสิต -->
-                <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3 shadow-sm hover:border-blue-400 transition">
-                    <div class="flex justify-between items-center border-b border-slate-200 pb-2">
-                        <span class="font-bold text-blue-900 text-sm">2. ต่างระดับฟิวเจอร์พาร์ค รังสิต</span>
-                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">ปกติ</span>
-                    </div>
-                    <div class="text-xs space-y-1.5 text-slate-600">
-                        <p><strong class="text-slate-800">พิกัดจุดเสี่ยง:</strong> อุโมงค์ลอดปทุมธานี / ทางวนลงพหลโยธิน</p>
-                        <p><strong class="text-slate-800">ระดับน้ำขัง:</strong> 0-5 ซม. (แห้งเป็นส่วนใหญ่)</p>
-                        <p><strong class="text-slate-800">การสัญจร:</strong> รถเล็กเคลื่อนตัวได้ดี ชะลอช่วงทางวน</p>
-                        <p><strong class="text-slate-800">การระบายน้ำ:</strong> สถานีสูบน้ำประตูน้ำจุฬาลงกรณ์เดินเครื่อง</p>
-                    </div>
-                    <a href="https://hdms.doh.go.th/dashboard" target="_blank" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg text-center flex items-center justify-center gap-2 transition">
-                        <i data-lucide="video" class="w-4 h-4"></i> ตรวจสอบกล้องสด (DOH)
-                    </a>
-                </div>
+/* ---------- โหลดข้อมูล ---------- */
+async function loadAll(){
+  $('upd').textContent = 'กำลังโหลดข้อมูล…'; $('errbox').innerHTML = '';
+  try{
+    const since = new Date(Date.now() - 45*60000).toISOString();
+    const [prof, latest, cams] = await Promise.all([
+      getJSON(API + 'sensor_profile?limit=-1&fields=code,name,road,district,lat,long,device_status,main_road'),
+      getJSON(API + 'sensor_flood?limit=-1&sort=-date_created&fields=sensor_name,value,timestamp,start_flood,end_flood,heighest_value&filter[date_created][_gte]=' + encodeURIComponent(since)),
+      state.camsLoaded ? Promise.resolve(null) : getJSON(API + 'camera_profile?limit=-1&fields=CameraName,LiveStream,SensorName,camera_description,Lat,Long').catch(()=>null),
+    ]);
+    const last = {};
+    for (const r of latest.data) if (!last[r.sensor_name]) last[r.sensor_name] = r;
+    if (cams){ state.camsLoaded = true; state.camsBySensor = {};
+      for (const c of cams.data) (state.camsBySensor[c.SensorName] ||= []).push(c); }
+    state.sensors = prof.data.filter(p => p.lat && p.long).map(p => {
+      const l = last[p.code]; const ts = l ? +l.timestamp : null;
+      let status = STATUS[p.device_status] ? p.device_status : 'malfunction';
+      if (!ts || Date.now() - ts > STALE_MS) status = 'malfunction';
+      return { code:p.code, name:p.name, road:p.road, district:p.district, lat:+p.lat, lng:+p.long,
+        main:!!p.main_road, isTunnel:p.code.startsWith('TN'), status,
+        value: l ? parseFloat(l.value) : null, ts, start:l?.start_flood, end:l?.end_flood,
+        peak: l?.heighest_value != null ? parseFloat(l.heighest_value) : null };
+    });
+    $('upd').textContent = `อัปเดต ${new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})} น. · ${state.sensors.length} จุดวัด · รีเฟรชอัตโนมัติทุก 5 นาที`;
+    drawSensors(); render();
+    if (state.sel) showDetail(state.sel, false);
+  }catch(e){
+    $('upd').textContent = 'โหลดข้อมูลไม่สำเร็จ';
+    $('errbox').innerHTML = `<div class="err">ดึงข้อมูลจากระบบของ กทม. ไม่ได้ (${esc(e.message||e)}) ลองกดรีเฟรชอีกครั้ง หรือดูที่ <a href="https://floodbangkok.bangkok.go.th" target="_blank" rel="noopener">floodbangkok.bangkok.go.th</a></div>`;
+  }
+}
 
-                <!-- Point 3: รังสิต-นครนายก คลอง 3 -->
-                <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3 shadow-sm hover:border-blue-400 transition">
-                    <div class="flex justify-between items-center border-b border-slate-200 pb-2">
-                        <span class="font-bold text-blue-900 text-sm">3. รังสิต-นครนายก คลอง 3</span>
-                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">เฝ้าระวัง</span>
-                    </div>
-                    <div class="text-xs space-y-1.5 text-slate-600">
-                        <p><strong class="text-slate-800">พิกัดจุดเสี่ยง:</strong> คอสะพานข้ามคลอง 3 / จุดกลับรถใต้สะพาน</p>
-                        <p><strong class="text-slate-800">ระดับน้ำขัง:</strong> 10 ซม. (ขังบริเวณเลนซ้ายสุด)</p>
-                        <p><strong class="text-slate-800">การสัญจร:</strong> รถเล็กใช้เลนขวา/กลาง หลีกเลี่ยงเลนซ้าย</p>
-                        <p><strong class="text-slate-800">การระบายน้ำ:</strong> กำลังสูบเร่งระบายลงคลองรังสิตประยูรศักดิ์</p>
-                    </div>
-                    <a href="https://traffic.longdo.com/cameralist" target="_blank" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg text-center flex items-center justify-center gap-2 transition">
-                        <i data-lucide="video" class="w-4 h-4"></i> ตรวจสอบกล้องสด (Longdo)
-                    </a>
-                </div>
+async function loadItic(){
+  try{
+    const j = await getJSON(ITIC);
+    state.itic = j.filter(c => +c.latitude > 13.45 && +c.latitude < 14.15 && +c.longitude > 100.25 && +c.longitude < 100.98)
+      .map(c => ({ title:c.title.replace(/^\((กรุงเทพมหานคร|จ\.[^)]+)\)\s*/, ''), area:(c.title.match(/^\(([^)]+)\)/)||[])[1]||'',
+        lat:+c.latitude, lng:+c.longitude,
+        hls: c.hls_url && !/tempsus/.test(c.hls_url) ? c.hls_url : null,
+        img: c.imgurl && !/X\.X\.X/.test(c.imgurl) ? c.imgurl : null }))
+      .filter(c => c.hls || c.img);
+    drawItic();
+  }catch(e){ /* กล้องเสริม ไม่บังคับ */ }
+}
 
-                <!-- Point 4: ลำลูกกา คลอง 4 -->
-                <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3 shadow-sm hover:border-blue-400 transition">
-                    <div class="flex justify-between items-center border-b border-slate-200 pb-2">
-                        <span class="font-bold text-blue-900 text-sm">4. ลำลูกกา คลอง 4 (ลาดสวาย)</span>
-                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-red-100 text-red-800">น้ำท่วมขัง</span>
-                    </div>
-                    <div class="text-xs space-y-1.5 text-slate-600">
-                        <p><strong class="text-slate-800">พิกัดจุดเสี่ยง:</strong> ถ.ไสวประชาราษฎร์ / หน้าตลาดเอซี คลอง 4</p>
-                        <p><strong class="text-slate-800">ระดับน้ำขัง:</strong> 15-20 ซม. (ท่วมขังเต็มผิวจราจร)</p>
-                        <p><strong class="text-slate-800">การสัญจร:</strong> รถเล็กผ่านได้ด้วยความระมัดระวัง ชะลอตัว</p>
-                        <p><strong class="text-slate-800">การระบายน้ำ:</strong> เดินเครื่องสูบน้ำประตูระบายน้ำคลอง 4 เต็มกำลัง</p>
-                    </div>
-                    <a href="https://traffic.longdo.com/cameralist" target="_blank" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg text-center flex items-center justify-center gap-2 transition">
-                        <i data-lucide="video" class="w-4 h-4"></i> ตรวจสอบกล้องสด (Longdo)
-                    </a>
-                </div>
+/* ---------- วาด ---------- */
+function drawSensors(){
+  sensorLayer.clearLayers();
+  for (const s of [...state.sensors].sort((a,b)=>STATUS[b.status].rank-STATUS[a.status].rank)){
+    const m = L.marker([s.lat,s.lng], {icon:sensorIcon(s), zIndexOffset: s.status==='flooding'?1000:s.status==='minor_flood'?500:0})
+      .bindTooltip(`${esc(s.name)}<br><b>${s.value!=null&&s.status!=='malfunction'?s.value+' ซม.':'-'}</b> · ${STATUS[s.status].label}`)
+      .on('click', ()=>showDetail(s.code));
+    markers[s.code] = m; m.addTo(sensorLayer);
+  }
+}
+function drawItic(){
+  camLayer.clearLayers();
+  if (!$('showCams').checked) return;
+  for (const c of state.itic){
+    L.marker([c.lat,c.lng], {icon:L.divIcon({className:'', html:'<div class="camicon">📷</div>', iconSize:[22,22]})})
+      .bindTooltip(esc(c.title)).on('click', ()=>openItic(c)).addTo(camLayer);
+  }
+}
 
-                <!-- Point 5: มทร.ธัญบุรี (คลอง 6) -->
-                <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3 shadow-sm hover:border-blue-400 transition">
-                    <div class="flex justify-between items-center border-b border-slate-200 pb-2">
-                        <span class="font-bold text-blue-900 text-sm">5. มทร.ธัญบุรี (คลอง 6)</span>
-                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">ปกติ</span>
-                    </div>
-                    <div class="text-xs space-y-1.5 text-slate-600">
-                        <p><strong class="text-slate-800">พิกัดจุดเสี่ยง:</strong> หน้าประตูใหญ่ มทร.ธัญบุรี / ถ.รังสิต-นครนายก</p>
-                        <p><strong class="text-slate-800">ระดับน้ำขัง:</strong> 0-5 ซม. (ไม่มีน้ำขังบนทางหลัก)</p>
-                        <p><strong class="text-slate-800">การสัญจร:</strong> สัญจรได้ปกติทุกช่องทาง</p>
-                        <p><strong class="text-slate-800">การระบายน้ำ:</strong> ระดับน้ำในคลองหกอยู่ในเกณฑ์ควบคุมได้</p>
-                    </div>
-                    <a href="https://hdms.doh.go.th/dashboard" target="_blank" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg text-center flex items-center justify-center gap-2 transition">
-                        <i data-lucide="video" class="w-4 h-4"></i> ตรวจสอบกล้องสด (DOH)
-                    </a>
-                </div>
+function visible(){
+  const q = state.q.trim().toLowerCase();
+  let list = state.sensors.filter(s =>
+    (!state.filter || s.status === state.filter) &&
+    (!state.onlyMain || s.main) &&
+    (!q || [s.name,s.road,s.district,s.code, s.isTunnel?'อุโมงค์':''].join(' ').toLowerCase().includes(q)));
+  if (state.me) list.forEach(s => s.dist = distKm(state.me, s));
+  list.sort((a,b) => state.me ? a.dist-b.dist
+    : (STATUS[a.status].rank-STATUS[b.status].rank) || ((b.value||0)-(a.value||0)) || a.name.localeCompare(b.name,'th'));
+  return list;
+}
 
-                <!-- Point 6: ลำลูกกา คลอง 7 -->
-                <div class="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3 shadow-sm hover:border-blue-400 transition">
-                    <div class="flex justify-between items-center border-b border-slate-200 pb-2">
-                        <span class="font-bold text-blue-900 text-sm">6. ลำลูกกา คลอง 7</span>
-                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">เฝ้าระวัง</span>
-                    </div>
-                    <div class="text-xs space-y-1.5 text-slate-600">
-                        <p><strong class="text-slate-800">พิกัดจุดเสี่ยง:</strong> จุดกลับรถใต้สะพานคลอง 7 / ตลาดใหญ่คลอง 7</p>
-                        <p><strong class="text-slate-800">ระดับน้ำขัง:</strong> 10-15 ซม. (เฉพาะจุดกลับรถใต้สะพาน)</p>
-                        <p><strong class="text-slate-800">การสัญจร:</strong> ทางหลักสัญจรได้ จุดกลับรถควรใช้ความระมัดระวัง</p>
-                        <p><strong class="text-slate-800">การระบายน้ำ:</strong> มีการติดตั้งเครื่องสูบน้ำเคลื่อนที่ประจำจุด</p>
-                    </div>
-                    <a href="https://hdms.doh.go.th/dashboard" target="_blank" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg text-center flex items-center justify-center gap-2 transition">
-                        <i data-lucide="video" class="w-4 h-4"></i> ตรวจสอบกล้องสด (DOH)
-                    </a>
-                </div>
+function render(){
+  const cnt = {}; state.sensors.forEach(s => cnt[s.status] = (cnt[s.status]||0)+1);
+  $('chips').innerHTML = Object.entries(STATUS).map(([k,v]) =>
+    `<button class="chip" data-k="${k}" aria-pressed="${state.filter===k}"><span class="dot" style="background:${v.color}"></span>${v.icon} ${v.label} <b>${cnt[k]||0}</b></button>`).join('');
+  const list = visible();
+  $('list').innerHTML = list.length ? list.map(s => `
+    <li data-c="${esc(s.code)}" class="${state.sel===s.code?'sel':''}">
+      <span class="dot" style="background:${STATUS[s.status].color}"></span>
+      <div><div class="nm">${s.isTunnel?'🚇 ':''}${esc(s.name)}</div>
+        <div class="meta">เขต${esc(s.district)} · ${esc(s.code)}${s.dist!=null&&state.me?` · ${s.dist.toFixed(1)} กม.`:''}${(state.camsBySensor[s.code]||[]).length?' · 📷':''}</div></div>
+      <div class="depth">${s.status!=='malfunction'&&s.value!=null?`${s.value}<small> ซม.</small>`:'<small>–</small>'}<br><span class="badge b-${s.status}">${STATUS[s.status].icon} ${STATUS[s.status].label}</span></div>
+    </li>`).join('') : '<div class="empty">ไม่พบจุดที่ตรงกับเงื่อนไข</div>';
+}
 
-            </div>
-        </div>
+/* ---------- รายละเอียดจุด ---------- */
+function advice(s){
+  if (s.status==='malfunction' || s.value==null) return {bg:'var(--off-bg)', t:'⏸ เซนเซอร์ไม่ส่งข้อมูลล่าสุด ดูภาพกล้องหรือสอบถาม 1555 ก่อนเดินทาง'};
+  const v = s.value;
+  if (v <= 0) return {bg:'var(--good-bg)', t:'✅ ไม่มีน้ำบนผิวถนน เดินทางได้ตามปกติ'};
+  if (v < 10) return {bg:'var(--warn-bg)', t:'⚠️ น้ำขังเล็กน้อย รถทุกประเภทผ่านได้ ขับช้า ระวังน้ำกระเซ็นและหลุมบ่อ'};
+  if (v < 20) return {bg:'var(--warn-bg)', t:'⚠️ น้ำลึกปานกลาง รถเก๋งเตี้ยและจักรยานยนต์เสี่ยง ควรเลี่ยงเส้นทางนี้'};
+  return {bg:'var(--crit-bg)', t:'⛔ น้ำลึกตั้งแต่ 20 ซม. ขึ้นไป รถเก๋งและจักรยานยนต์ไม่ควรผ่าน ใช้เส้นทางอื่น'};
+}
 
-        <!-- Section: Interactive Map Overview -->
-        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
-            <h2 class="font-bold text-slate-800 text-lg flex items-center gap-2">
-                <i data-lucide="map-pin" class="w-5 h-5 text-red-500"></i>
-                แผนที่พิกัดจุดเฝ้าระวังน้ำท่วมและตำแหน่งกล้อง
-            </h2>
-            <div id="map"></div>
-        </div>
+function showDetail(code, pan = true){
+  const s = state.sensors.find(x => x.code === code); if (!s) return;
+  state.sel = code; render();
+  if (pan){ map.setView([s.lat,s.lng], Math.max(map.getZoom(), 15)); }
+  const st = STATUS[s.status]; const a = advice(s);
+  const cams = state.camsBySensor[s.code] || [];
+  const nearby = state.itic.map(c => ({...c, d:distKm(s,c)})).filter(c => c.d <= 3).sort((x,y)=>x.d-y.d).slice(0,3);
+  const d = $('detail'); d.classList.add('on');
+  d.innerHTML = `
+    <div class="dhead"><div><h2>${s.isTunnel?'🚇 ':''}${esc(s.name)}</h2>
+      <div class="meta">${esc(s.road||'')} · เขต${esc(s.district)} · ${esc(s.code)}</div></div>
+      <button class="btn" id="close" aria-label="ปิด">✕</button></div>
+    <div class="hero"><span class="v">${s.status!=='malfunction'&&s.value!=null?s.value:'–'}</span><span class="u">ซม. (ความลึกน้ำบนผิวถนน)</span></div>
+    <span class="badge b-${s.status}">${st.icon} ${st.label}</span>
+    <div class="advice" style="background:${a.bg}">${a.t}</div>
+    <div class="grid2">
+      <div><span>ข้อมูลล่าสุด</span>${s.ts?fmtTime(s.ts)+' ('+ago(s.ts)+')':'–'}</div>
+      <div><span>สูงสุดวันนี้</span>${s.peak!=null?s.peak+' ซม.':'–'}</div>
+      <div><span>เริ่มท่วม</span>${esc(s.start||'–')}</div>
+      <div><span>น้ำลด</span>${esc(s.end||'–')}</div>
+    </div>
+    <div class="sec">ระดับน้ำย้อนหลัง 24 ชั่วโมง</div>
+    <div class="chart" id="chart"><div class="note">กำลังโหลด…</div></div>
+    <div class="sec">ภาพกล้อง ณ จุดวัด ${cams.length?`(${cams.length})`:''}</div>
+    <div class="cams" id="bmacams">${cams.length ? '' : '<div class="note">จุดนี้ไม่มีกล้องของระบบน้ำท่วม กทม.</div>'}</div>
+    ${nearby.length ? `<div class="sec">กล้องจราจรใกล้เคียง (iTIC)</div><div class="cams" id="iticcams"></div>` : ''}
+    <p class="note" style="margin-top:12px">ดูหน้าทางการของจุดนี้: <a href="${OFFICIAL(s.code)}" target="_blank" rel="noopener">floodbangkok.bangkok.go.th</a> · สายด่วน กทม. 1555</p>`;
+  $('close').onclick = () => { stopMedia(d); d.classList.remove('on'); d.innerHTML=''; state.sel=null; render(); };
+  loadHistory(s);
+  cams.slice(0,4).forEach(c => $('bmacams').appendChild(bmaCam(c)));
+  nearby.forEach(c => $('iticcams').appendChild(iticCam(c, c.d)));
+  d.scrollIntoView({block:'nearest'});
+}
 
-    </main>
+/* ---------- กราฟย้อนหลัง ---------- */
+async function loadHistory(s){
+  const box = $('chart');
+  try{
+    const since = new Date(Date.now()-24*3600e3).toISOString();
+    const j = await getJSON(API + `sensor_flood?limit=-1&sort=date_created&fields=value,timestamp&filter[sensor_name][_eq]=${encodeURIComponent(s.code)}&filter[date_created][_gte]=${encodeURIComponent(since)}`);
+    if (state.sel !== s.code || !$('chart')) return;
+    const pts = j.data.map(r => ({t:+r.timestamp, v:parseFloat(r.value)})).filter(p => isFinite(p.t) && isFinite(p.v));
+    if (!pts.length){ box.innerHTML = '<div class="note">ไม่มีข้อมูลใน 24 ชม.</div>'; return; }
+    drawChart(box, pts);
+  }catch(e){ box.innerHTML = '<div class="note">โหลดกราฟไม่สำเร็จ</div>'; }
+}
+function drawChart(box, pts){
+  const W = 360, H = 150, P = {l:30, r:8, t:10, b:22};
+  const t0 = Date.now()-24*3600e3, t1 = Date.now();
+  const vmax = Math.max(25, ...pts.map(p=>p.v)) * 1.1;
+  const x = t => P.l + (t-t0)/(t1-t0)*(W-P.l-P.r), y = v => H-P.b - v/vmax*(H-P.t-P.b);
+  const grid = [0,10,20].concat(vmax>45?[40]:[]).filter(v=>v<vmax);
+  const ticks = [0,6,12,18,24].map(h => t0 + h*3600e3);
+  // แบ่งเส้นเมื่อข้อมูลขาดเกิน 20 นาที
+  let path = '', prev = null;
+  for (const p of pts){ path += (prev && p.t-prev.t < 20*60e3 ? 'L' : 'M') + x(p.t).toFixed(1)+','+y(p.v).toFixed(1); prev = p; }
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="กราฟระดับน้ำย้อนหลัง 24 ชั่วโมง">
+    ${grid.map(v=>`<line x1="${P.l}" x2="${W-P.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" ${v?'stroke-dasharray="3 3"':''}/>
+      <text x="${P.l-4}" y="${y(v)+4}" text-anchor="end" font-size="10" fill="var(--ink-3)">${v}</text>`).join('')}
+    ${ticks.map(t=>`<text x="${x(t)}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--ink-3)">${new Date(t).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</text>`).join('')}
+    <path d="${path}" fill="none" stroke="var(--series)" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+    <line id="xh" y1="${P.t}" y2="${H-P.b}" stroke="var(--ink-3)" stroke-width="1" visibility="hidden" vector-effect="non-scaling-stroke"/>
+    <rect x="${P.l}" y="0" width="${W-P.l-P.r}" height="${H}" fill="transparent" id="hit"/>
+  </svg><div class="tip" id="tip"></div><div class="note">หน่วย: ซม. · เส้นประ = 10 และ 20 ซม.</div>`;
+  const svg = box.querySelector('svg'), tip = box.querySelector('#tip'), xh = box.querySelector('#xh');
+  const move = ev => {
+    const rc = svg.getBoundingClientRect(); const px = (ev.clientX - rc.left) / rc.width * W;
+    const t = t0 + (px-P.l)/(W-P.l-P.r)*(t1-t0);
+    let best = pts[0]; for (const p of pts) if (Math.abs(p.t-t) < Math.abs(best.t-t)) best = p;
+    xh.setAttribute('x1', x(best.t)); xh.setAttribute('x2', x(best.t)); xh.setAttribute('visibility','visible');
+    tip.style.display='block'; tip.innerHTML = `<b>${best.v} ซม.</b> · ${new Date(best.t).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})} น.`;
+    const left = x(best.t)/W*rc.width; tip.style.left = Math.min(Math.max(left-50,0), rc.width-110)+'px'; tip.style.top = '0px';
+  };
+  svg.addEventListener('pointermove', move);
+  svg.addEventListener('pointerleave', () => { tip.style.display='none'; xh.setAttribute('visibility','hidden'); });
+}
 
-    <footer class="mt-12 border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-500">
-        <p>ระบบรวบรวมข้อมูลเฝ้าระวังน้ำท่วม ปทุมธานี-ลำลูกกา-ธัญบุรี</p>
-    </footer>
+/* ---------- กล้อง ---------- */
+function bmaCam(c){
+  const el = document.createElement('div'); el.className = 'cam';
+  el.innerHTML = `<div class="msg">กดเพื่อเปิดภาพสด<br>${esc(c.camera_description||c.CameraName)}</div>
+    <div class="cap"><span>${esc(c.camera_description||'')}</span><span>${esc(c.CameraName)}</span></div>`;
+  el.querySelector('.msg').style.cursor = 'pointer';
+  el.querySelector('.msg').onclick = () => playBma(el, c);
+  return el;
+}
+function playBma(el, c){
+  const msg = el.querySelector('.msg'); msg.textContent = 'กำลังเชื่อมต่อกล้อง…';
+  const v = document.createElement('video'); v.muted = true; v.autoplay = true; v.playsInline = true; v.controls = true;
+  const urls = [c.LiveStream, c.LiveStream.replace(/&mp4=[^&]*/, '')];
+  let i = 0, done = false;
+  const fail = () => { if (done) return; if (++i < urls.length){ v.src = urls[i]; return; }
+    done = true; v.remove(); msg.style.display='flex';
+    msg.innerHTML = `กล้องไม่ตอบสนองในขณะนี้<br>(เซิร์ฟเวอร์กล้องของ กทม. อาจขัดข้อง)<br><a href="${OFFICIAL(c.SensorName)}" target="_blank" rel="noopener" style="color:#9cc2ff">เปิดในเว็บ กทม.</a>`; };
+  const timer = setTimeout(fail, 15000);
+  v.onloadeddata = () => { done = true; clearTimeout(timer); msg.style.display='none'; };
+  v.onerror = () => { clearTimeout(timer); fail(); };
+  v.src = urls[0]; el.insertBefore(v, el.firstChild);
+}
+function iticCam(c, d){
+  const el = document.createElement('div'); el.className = 'cam';
+  el.innerHTML = `<div class="msg">กำลังโหลดภาพ…</div><div class="cap"><span>${esc(c.title)}</span><span>${d!=null?d.toFixed(1)+' กม.':esc(c.area)}</span></div>`;
+  const msg = el.querySelector('.msg');
+  const showErr = () => { msg.style.display='flex'; msg.textContent = 'กล้องนี้ไม่ส่งภาพในขณะนี้'; };
+  if (c.hls){
+    const v = document.createElement('video'); v.muted = true; v.autoplay = true; v.playsInline = true; v.controls = true;
+    v.onloadeddata = () => msg.style.display='none';
+    if (v.canPlayType('application/vnd.apple.mpegurl')){ v.src = c.hls; v.onerror = showErr; }
+    else if (window.Hls && Hls.isSupported()){ const h = new Hls({maxBufferLength:10}); h.loadSource(c.hls); h.attachMedia(v); v._hls = h;
+      h.on(Hls.Events.ERROR, (_, e) => { if (e.fatal){ h.destroy(); c.img ? jpegInto(el, c.img, msg) : showErr(); } }); }
+    else if (c.img) { jpegInto(el, c.img, msg); return el; }
+    el.insertBefore(v, el.firstChild);
+  } else jpegInto(el, c.img, msg);
+  return el;
+}
+function jpegInto(el, url, msg){
+  el.querySelector('video')?.remove();
+  const img = new Image(); img.alt = 'ภาพจากกล้อง';
+  img.onload = () => msg.style.display='none';
+  img.onerror = () => { msg.style.display='flex'; msg.textContent='กล้องนี้ไม่ส่งภาพในขณะนี้'; };
+  const tick = () => { if (!img.isConnected && img._started) return clearInterval(img._iv); img._started = true; img.src = url + (url.includes('?')?'&':'?') + '_=' + Date.now(); };
+  tick(); img._iv = setInterval(tick, 10000);
+  el.insertBefore(img, el.firstChild);
+}
+function openItic(c){
+  stopMedia($('detail'));
+  const d = $('detail'); d.classList.add('on'); state.sel = null; render();
+  d.innerHTML = `<div class="dhead"><div><h2>📷 ${esc(c.title)}</h2><div class="meta">${esc(c.area)} · กล้องจราจร iTIC</div></div><button class="btn" id="close">✕</button></div>
+    <div class="cams" id="one" style="margin-top:10px"></div>`;
+  $('one').appendChild(iticCam(c));
+  const near = state.sensors.map(s=>({s,d:distKm(s,c)})).filter(x=>x.d<=2).sort((a,b)=>a.d-b.d).slice(0,5);
+  if (near.length){ d.insertAdjacentHTML('beforeend', `<div class="sec">จุดวัดระดับน้ำใกล้กล้องนี้</div>` + near.map(x =>
+    `<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;cursor:pointer" data-go="${esc(x.s.code)}"><span>${esc(x.s.name)} <span class="meta">${x.d.toFixed(1)} กม.</span></span><span class="badge b-${x.s.status}">${STATUS[x.s.status].icon} ${x.s.status!=='malfunction'&&x.s.value!=null?x.s.value+' ซม.':STATUS[x.s.status].label}</span></div>`).join(''));
+    d.querySelectorAll('[data-go]').forEach(n => n.onclick = () => { stopMedia(d); showDetail(n.dataset.go); }); }
+  $('close').onclick = () => { stopMedia(d); d.classList.remove('on'); d.innerHTML=''; };
+}
+function stopMedia(root){
+  root.querySelectorAll('video').forEach(v => { v._hls?.destroy(); v.pause(); v.removeAttribute('src'); v.load(); });
+  root.querySelectorAll('img').forEach(i => clearInterval(i._iv));
+}
 
-    <script>
-        lucide.createIcons();
+/* ---------- ตำแหน่งผู้ใช้ ---------- */
+function distKm(a, b){ const R=6371, r=Math.PI/180, dLat=(b.lat-a.lat)*r, dLng=(b.lng-a.lng)*r;
+  const h = Math.sin(dLat/2)**2 + Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dLng/2)**2; return 2*R*Math.asin(Math.sqrt(h)); }
+let meMarker = null;
+$('near').onclick = () => {
+  if (state.me){ state.me = null; meMarker?.remove(); $('near').textContent='📍 ใกล้ฉัน'; render(); return; }
+  if (!navigator.geolocation) return alert('เบราว์เซอร์นี้ไม่รองรับการระบุตำแหน่ง');
+  $('near').textContent = 'กำลังหาตำแหน่ง…';
+  navigator.geolocation.getCurrentPosition(p => {
+    state.me = {lat:p.coords.latitude, lng:p.coords.longitude};
+    meMarker = L.circleMarker([state.me.lat,state.me.lng], {radius:8, color:'#fff', weight:3, fillColor:'#2563c9', fillOpacity:1}).addTo(map).bindTooltip('ตำแหน่งของคุณ');
+    map.setView([state.me.lat,state.me.lng], 14); $('near').textContent='✕ เลิกเรียงตามระยะ'; render();
+  }, () => { $('near').textContent='📍 ใกล้ฉัน'; alert('ไม่ได้รับอนุญาตให้ใช้ตำแหน่ง'); }, {enableHighAccuracy:true, timeout:10000});
+};
 
-        // Initialize Map
-        const map = L.map('map').setView([13.9680, 100.6850], 12);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 18,
-            attribution: '© OpenStreetMap'
-        }).addTo(map);
+/* ---------- อีเวนต์ ---------- */
+$('chips').onclick = e => { const b = e.target.closest('.chip'); if (!b) return; state.filter = state.filter===b.dataset.k ? null : b.dataset.k; render(); };
+$('list').onclick = e => { const li = e.target.closest('li'); if (li){ stopMedia($('detail')); showDetail(li.dataset.c); } };
+$('q').oninput = e => { state.q = e.target.value; render(); };
+$('onlyMain').onchange = e => { state.onlyMain = e.target.checked; render(); };
+$('showCams').onchange = drawItic;
+$('reload').onclick = loadAll;
 
-        const locations = [
-            { name: "1. BTS คูคต (ลำลูกกา คลอง 1)", coords: [13.9324, 100.6458], status: "ปกติ (0 ซม.)", url: "http://www.bmatraffic.com/index.aspx" },
-            { name: "2. ฟิวเจอร์พาร์ค รังสิต", coords: [13.9892, 100.6181], status: "ปกติ (0-5 ซม.)", url: "https://hdms.doh.go.th/dashboard" },
-            { name: "3. รังสิต-นครนายก คลอง 3", coords: [13.9945, 100.6720], status: "เฝ้าระวัง (ขังเลนซ้าย 10 ซม.)", url: "https://traffic.longdo.com/cameralist" },
-            { name: "4. ลำลูกกา คลอง 4 (ลาดสวาย)", coords: [13.9355, 100.6882], status: "น้ำท่วมขัง (15-20 ซม.)", url: "https://traffic.longdo.com/cameralist" },
-            { name: "5. มทร.ธัญบุรี (คลอง 6)", coords: [14.0358, 100.7282], status: "ปกติ (0-5 ซม.)", url: "https://hdms.doh.go.th/dashboard" },
-            { name: "6. ลำลูกกา คลอง 7", coords: [13.9378, 100.7512], status: "เฝ้าระวังจุดกลับรถ (10-15 ซม.)", url: "https://hdms.doh.go.th/dashboard" }
-        ];
-
-        locations.forEach(loc => {
-            L.marker(loc.coords).addTo(map)
-                .bindPopup(`
-                    <div style="font-family:'Sarabun',sans-serif; text-align:center;">
-                        <b>${loc.name}</b><br>
-                        <span style="font-size:12px; color:#555;">สถานะ: ${loc.status}</span><br><br>
-                        <a href="${loc.url}" target="_blank" style="background:#2563eb; color:white; padding:4px 8px; border-radius:4px; text-decoration:none; font-size:11px; font-weight:bold;">ดูภาพกล้องสด</a>
-                    </div>
-                `);
-        });
-    </script>
+loadAll(); loadItic();
+setInterval(loadAll, REFRESH_MS);
+</script>
 </body>
 </html>
