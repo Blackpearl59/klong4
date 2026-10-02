@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบตรวจสอบสถานการณ์น้ำท่วม - คลอง 4 ลาดสวาย ลำลูกกา</title>
+    <title>ระบบตรวจสอบสถานการณ์น้ำท่วม & CCTV - คลอง 4 ลาดสวาย ลำลูกกา</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -23,7 +23,7 @@
 
     <!-- Header / Navbar -->
     <header class="bg-blue-800 text-white shadow-lg sticky top-0 z-50">
-        <div class="max-w-6xl mx-mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-3">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-3">
             <div class="flex items-center gap-3">
                 <div class="p-2 bg-blue-700 rounded-lg">
                     <i data-lucide="waves" class="w-8 h-8 text-blue-200"></i>
@@ -55,7 +55,6 @@
 
         <!-- Metric Cards -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <!-- Card 1 -->
             <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <span class="text-sm font-medium text-slate-500">ระดับน้ำในคลองสี่</span>
@@ -69,7 +68,6 @@
                 </div>
             </div>
 
-            <!-- Card 2 -->
             <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <span class="text-sm font-medium text-slate-500">ปริมาณฝนสะสม (24 ชม.)</span>
@@ -81,7 +79,6 @@
                 </div>
             </div>
 
-            <!-- Card 3 -->
             <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <span class="text-sm font-medium text-slate-500">ประตูระบายน้ำคลอง 4</span>
@@ -93,7 +90,6 @@
                 </div>
             </div>
 
-            <!-- Card 4 -->
             <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
                 <div class="flex justify-between items-start">
                     <span class="text-sm font-medium text-slate-500">เครื่องสูบน้ำสถานีลาดสวาย</span>
@@ -106,9 +102,72 @@
             </div>
         </div>
 
+        <!-- Section: CCTV Live Stream Monitoring -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                <h2 class="font-bold text-slate-800 text-lg flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-red-600 animate-ping"></span>
+                    <i data-lucide="video" class="w-5 h-5 text-red-500"></i>
+                    กล้อง CCTV ตรวจสอบสภาพน้ำและจราจรสด
+                </h2>
+                <div class="flex gap-2">
+                    <button onclick="changeCam('ac')" id="btn-ac" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 text-white shadow-sm transition">
+                        ตลาดเอซี
+                    </button>
+                    <button onclick="changeCam('market')" id="btn-market" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">
+                        ตลาดลาดสวาย
+                    </button>
+                    <button onclick="changeCam('gate')" id="btn-gate" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">
+                        ประตูระบายน้ำ
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- CCTV Frame -->
+                <div class="lg:col-span-2 relative aspect-video bg-black rounded-xl overflow-hidden shadow-inner group">
+                    <img id="cctv-feed" src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=1200&q=80" 
+                         alt="CCTV Feed" class="w-full h-full object-cover">
+                    
+                    <!-- Overlay Info -->
+                    <div class="absolute top-3 left-3 bg-black/70 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-2 border border-white/10">
+                        <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                        <span id="cam-location-title" class="font-bold">กล้อง 01: ถ.ไสวประชาราษฎร์ (ตรงข้ามตลาดเอซี)</span>
+                    </div>
+
+                    <div class="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md text-white text-[11px] px-2.5 py-1 rounded border border-white/10 flex items-center gap-1.5">
+                        <i data-lucide="clock" class="w-3 h-3 text-slate-300"></i>
+                        <span id="cam-time">LIVE</span>
+                    </div>
+                </div>
+
+                <!-- Camera Info & Controls -->
+                <div class="flex flex-col justify-between space-y-4">
+                    <div class="space-y-3">
+                        <h3 class="font-bold text-slate-700 text-sm border-b pb-2">รายละเอียดจุดตรวจการณ์</h3>
+                        <div class="text-xs space-y-2 text-slate-600">
+                            <p><span class="font-semibold text-slate-800">พิกัด:</span> <span id="cam-coords">13.9550, 100.6875</span></p>
+                            <p><span class="font-semibold text-slate-800">สถานะจราจร:</span> <span id="cam-traffic" class="text-amber-600 font-medium">ชะลอตัว / มีน้ำขังขอบทาง</span></p>
+                            <p><span class="font-semibold text-slate-800">ระดับน้ำผิวจราจร:</span> <span id="cam-water-level" class="text-red-600 font-bold">15 - 20 ซม.</span></p>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 text-xs text-blue-800 space-y-1">
+                        <p class="font-bold flex items-center gap-1">
+                            <i data-lucide="info" class="w-4 h-4 text-blue-600"></i> คำแนะนำในการเดินทาง
+                        </p>
+                        <p id="cam-advice" class="text-blue-700">รถเก๋งและรถจักรยานยนต์ควรชะลอความเร็ว หลีกเลี่ยงการใช้เลนซ้ายสุด</p>
+                    </div>
+
+                    <button onclick="refreshCCTV()" class="w-full py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 transition">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> รีเฟรชภาพกล้อง
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Section: Map & Traffic Check -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- interactive Map (2 Cols) -->
             <div class="lg:col-span-2 bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
                 <div class="flex justify-between items-center">
                     <h2 class="font-bold text-slate-800 text-lg flex items-center gap-2">
@@ -118,7 +177,6 @@
                     <span class="text-xs text-slate-400">อัปเดตเรียลไทม์</span>
                 </div>
                 <div id="map"></div>
-                <!-- Map Legend -->
                 <div class="flex flex-wrap gap-4 text-xs text-slate-600 pt-2 border-t border-slate-100">
                     <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-red-500"></span> น้ำท่วมสูง (20-40 ซม.)</div>
                     <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500"></span> น้ำท่วมขังขอบทาง (10-15 ซม.)</div>
@@ -126,7 +184,7 @@
                 </div>
             </div>
 
-            <!-- Road Monitoring / Hotspots -->
+            <!-- Road Monitoring / Hotspots & Hotline -->
             <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
                 <h2 class="font-bold text-slate-800 text-lg flex items-center gap-2">
                     <i data-lucide="navigation" class="w-5 h-5 text-blue-600"></i>
@@ -134,7 +192,6 @@
                 </h2>
                 
                 <div class="space-y-3">
-                    <!-- Location Item -->
                     <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
                         <div class="flex justify-between items-start">
                             <span class="font-semibold text-sm">ถ.ไสวประชาราษฎร์ (ตรงข้ามตลาดเอซี)</span>
@@ -143,7 +200,6 @@
                         <p class="text-xs text-slate-500 mt-1">ระดับน้ำ 20-30 ซม. รถเล็กควรหลีกเลี่ยง</p>
                     </div>
 
-                    <!-- Location Item -->
                     <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
                         <div class="flex justify-between items-start">
                             <span class="font-semibold text-sm">แยกตลาดลาดสวาย - รร.แย้มสะอาด</span>
@@ -152,7 +208,6 @@
                         <p class="text-xs text-slate-500 mt-1">น้ำท่วมเลนซ้ายสุด รถทุกชนิดผ่านได้</p>
                     </div>
 
-                    <!-- Location Item -->
                     <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
                         <div class="flex justify-between items-start">
                             <span class="font-semibold text-sm">เลียบคลอง 4 ฝั่งตะวันออก</span>
@@ -161,7 +216,6 @@
                         <p class="text-xs text-slate-500 mt-1">ไม่มีน้ำท่วมขังบนผิวจราจร</p>
                     </div>
 
-                    <!-- Emergency Contact -->
                     <div class="mt-4 pt-3 border-t border-slate-200 space-y-2">
                         <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">เบอร์สายด่วนขอความช่วยเหลือ</h4>
                         <a href="tel:025923101" class="flex items-center justify-between p-2.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition text-sm font-semibold">
@@ -187,30 +241,81 @@
 
     <!-- Script Logic -->
     <script>
-        // Initialize Lucide Icons
         lucide.createIcons();
 
-        // Update Current Time
         function updateTime() {
             const now = new Date();
             const timeStr = now.toLocaleDateString('th-TH', { 
                 day: 'numeric', month: 'short', year: 'numeric',
-                hour: '2-digit', minute: '2-digit' 
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
             }) + ' น.';
             document.getElementById('last-updated').textContent = timeStr;
+            document.getElementById('cam-time').textContent = now.toLocaleTimeString('th-TH') + ' น.';
         }
+        setInterval(updateTime, 1000);
         updateTime();
 
-        // Initialize Leaflet Map (Centered at Khlong 4, Ladtaswai, Lam Luk Ka)
-        const map = L.map('map').setView([13.9620, 100.6860], 13);
+        // CCTV Camera Feeds Data
+        const camData = {
+            ac: {
+                title: "กล้อง 01: ถ.ไสวประชาราษฎร์ (ตรงข้ามตลาดเอซี)",
+                coords: "13.9550, 100.6875",
+                traffic: "ชะลอตัว / มีน้ำขังขอบทาง",
+                water: "15 - 20 ซม.",
+                advice: "รถเก๋งและรถจักรยานยนต์ควรชะลอความเร็ว หลีกเลี่ยงการใช้เลนซ้ายสุด",
+                img: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=1200&q=80"
+            },
+            market: {
+                title: "กล้อง 02: แยกตลาดลาดสวาย - โรงเรียนแย้มสะอาด",
+                coords: "13.9720, 100.6845",
+                traffic: "คล่องตัวดี",
+                water: "5 - 10 ซม. (ขอบทาง)",
+                advice: "รถทุกชนิดผ่านได้ตามปกติ มีน้ำท่วมขังเล็กน้อยบริเวณจุดกลับรถ",
+                img: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=1200&q=80"
+            },
+            gate: {
+                title: "กล้อง 03: ประตูระบายน้ำคลองสี่ (ฝั่งลำลูกกา)",
+                coords: "13.9360, 100.6888",
+                traffic: "ปกติ",
+                water: "ระดับน้ำตลิ่ง +1.25 ม.",
+                advice: "เดินเครื่องสูบน้ำเต็มกำลัง 6 เครื่อง ปริมาณการระบายเป็นไปตามแผน",
+                img: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80"
+            }
+        };
 
-        // OpenStreetMap Layer
+        function changeCam(camKey) {
+            const data = camData[camKey];
+            document.getElementById('cctv-feed').src = data.img + "&t=" + new Date().getTime();
+            document.getElementById('cam-location-title').textContent = data.title;
+            document.getElementById('cam-coords').textContent = data.coords;
+            document.getElementById('cam-traffic').textContent = data.traffic;
+            document.getElementById('cam-water-level').textContent = data.water;
+            document.getElementById('cam-advice').textContent = data.advice;
+
+            // Update Active Buttons
+            ['ac', 'market', 'gate'].forEach(k => {
+                const btn = document.getElementById(`btn-${k}`);
+                if (k === camKey) {
+                    btn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 text-white shadow-sm transition";
+                } else {
+                    btn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
+                }
+            });
+        }
+
+        function refreshCCTV() {
+            const img = document.getElementById('cctv-feed');
+            const currentSrc = img.src.split('&t=')[0];
+            img.src = currentSrc + "&t=" + new Date().getTime();
+        }
+
+        // Initialize Leaflet Map
+        const map = L.map('map').setView([13.9620, 100.6860], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 18,
             attribution: '© OpenStreetMap'
         }).addTo(map);
 
-        // Add Flood Risk Pins & Circles
         const locations = [
             {
                 name: "ถนนไสวประชาราษฎร์ (ตรงข้ามตลาดเอซี คลอง 4)",
@@ -235,7 +340,6 @@
         locations.forEach(loc => {
             const circleColor = loc.color === 'red' ? '#ef4444' : loc.color === 'orange' ? '#f59e0b' : '#10b981';
             
-            // Add Circle Marker
             L.circle(loc.coords, {
                 color: circleColor,
                 fillColor: circleColor,
@@ -243,7 +347,6 @@
                 radius: 400
             }).addTo(map);
 
-            // Add Popup Marker
             L.marker(loc.coords).addTo(map)
                 .bindPopup(`<b>${loc.name}</b><br>สถานะ: ${loc.status}`);
         });
