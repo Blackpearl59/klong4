@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ระดับน้ำท่วมถนน กทม.</title>
+<title>ระดับน้ำท่วม กทม.-ปทุมธานี</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
@@ -38,7 +38,7 @@ h1{font-size:18px;margin:0;font-weight:600}
 .chip b{font-weight:600}
 .dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
 .controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.controls input{flex:1 1 220px;min-width:0;border:1px solid var(--line-2);background:var(--surface);border-radius:8px;padding:6px 10px}
+.controls input[type=search]{flex:1 1 220px;min-width:0;border:1px solid var(--line-2);background:var(--surface);border-radius:8px;padding:6px 10px}
 .controls label{display:flex;align-items:center;gap:6px;color:var(--ink-2);font-size:13px}
 main{display:grid;grid-template-columns:minmax(0,1fr) 400px;height:calc(100% - var(--hh,150px))}
 #map{min-height:320px;background:var(--surface)}
@@ -77,6 +77,16 @@ a{color:var(--accent)}
 .err{margin:12px 16px;padding:10px 12px;border-radius:8px;background:var(--crit-bg);font-size:13px}
 .camicon{background:#1c1d1b;color:#fff;border:2px solid #fff;border-radius:6px;width:22px!important;height:22px!important;display:flex;align-items:center;justify-content:center;font-size:12px}
 .leaflet-container{font:inherit}
+.tabs{display:flex;gap:4px;margin-top:10px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border:0;background:none;padding:6px 12px;border-bottom:2px solid transparent;cursor:pointer;color:var(--ink-2);white-space:nowrap}
+.tabs button[aria-selected="true"]{border-bottom-color:var(--accent);color:var(--ink);font-weight:600}
+.lhead{padding:10px 16px 6px;font-weight:600;font-size:13px;color:var(--ink-2);background:var(--bg);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:1}
+.lhead small{font-weight:400;color:var(--ink-3)}
+.b-event{background:#fdeee6} .b-tw{background:var(--off-bg)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .b-event{background:#3d2618}}
+.evicon{width:20px!important;height:20px!important;border-radius:4px;background:#ec835a;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.35);color:#1c1d1b;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}
+.twicon{width:18px!important;height:18px!important;border-radius:50%;border:3px solid #2a6fdb;box-shadow:0 0 0 1px #fff;display:flex;align-items:center;justify-content:center;font-size:9px}
+.links a{display:block;margin:4px 0}
 @media (max-width:860px){
   main{grid-template-columns:1fr;grid-template-rows:45vh auto;height:auto}
   aside{border-left:0;border-top:1px solid var(--line);overflow:visible}
@@ -87,7 +97,7 @@ a{color:var(--accent)}
 <header id="hdr">
   <div class="top">
     <div>
-      <h1>ระดับน้ำท่วมถนนและอุโมงค์ กทม. (เรียลไทม์)</h1>
+      <h1>ระดับน้ำท่วมถนน กทม. และลำลูกกา–ธัญบุรี (เรียลไทม์)</h1>
       <div class="sub" id="upd">กำลังโหลดข้อมูล…</div>
     </div>
     <div style="display:flex;gap:8px">
@@ -95,9 +105,14 @@ a{color:var(--accent)}
       <button class="btn primary" id="reload">รีเฟรช</button>
     </div>
   </div>
+  <div class="tabs" id="tabs" role="tablist">
+    <button role="tab" data-a="bkk">กรุงเทพฯ</button>
+    <button role="tab" data-a="pt">ลำลูกกา–ธัญบุรี (ปทุมธานี)</button>
+    <button role="tab" data-a="all">ทั้งหมด</button>
+  </div>
   <div class="chips" id="chips"></div>
   <div class="controls">
-    <input id="q" type="search" placeholder="ค้นหาถนน / เขต / จุด เช่น รามคำแหง, ลาดกระบัง, อุโมงค์">
+    <input id="q" type="search" placeholder="ค้นหาถนน / เขต / คลอง เช่น รามคำแหง, ลำลูกกา, คลองหกวา, อุโมงค์">
     <label><input type="checkbox" id="onlyMain"> ถนนสายหลักเท่านั้น</label>
     <label><input type="checkbox" id="showCams" checked> แสดงกล้อง CCTV บนแผนที่</label>
   </div>
@@ -121,6 +136,12 @@ a{color:var(--accent)}
 const API = 'https://floodbangkok.bangkok.go.th/bkk/dds/services/api/floods/v1/items/';
 const ITIC = 'https://camera.longdo.com/feed/?command=json';
 const OFFICIAL = code => 'https://floodbangkok.bangkok.go.th/device-info?sensor_profile_id=' + encodeURIComponent(code);
+const TW = 'https://api-v3.thaiwater.net/api/v1/thaiwater30/public/';   // คลังข้อมูลน้ำแห่งชาติ (สสน.)
+const EVENTS = 'https://event.longdo.com/feed/json';                        // รายงานเหตุการณ์ iTIC/Longdo (รวมกรมทางหลวง)
+const PT_BOX = {s:13.86, n:14.12, w:100.58, e:100.95};                      // ลำลูกกา + ธัญบุรี + ขอบ กทม. ที่ติดกัน
+const REGION_BOX = {s:13.45, n:14.30, w:100.25, e:101.05};
+const inBox = (o,b) => o.lat>=b.s && o.lat<=b.n && o.lng>=b.w && o.lng<=b.e;
+const TW_REFRESH_MS = 10 * 60 * 1000;   // ThaiWater จำกัดจำนวนครั้งเรียก จึงดึงห่างกว่า
 const REFRESH_MS = 5 * 60 * 1000;
 const STALE_MS = 30 * 60 * 1000;
 
@@ -131,7 +152,15 @@ const STATUS = {
   malfunction: {label:'ขัดข้อง/ไม่มีข้อมูล', icon:'⏸', color:'var(--off)',  hex:'#8b8d88', rank:3},
 };
 
-const state = {sensors:[], camsBySensor:{}, itic:[], filter:null, q:'', onlyMain:false, sel:null, me:null};
+const TW_SIT = {
+  5:{label:'ล้นตลิ่ง', icon:'⛔', hex:'#d03b3b', cls:'flooding'},
+  4:{label:'น้ำมาก',   icon:'⚠️', hex:'#fab219', cls:'minor_flood'},
+  3:{label:'ปกติ',     icon:'✅', hex:'#0ca30c', cls:'normal'},
+  2:{label:'น้ำน้อย',  icon:'▽',  hex:'#8b8d88', cls:'malfunction'},
+  1:{label:'น้ำน้อยวิกฤต', icon:'▽', hex:'#8b8d88', cls:'malfunction'},
+};
+let savedArea = 'bkk'; try { savedArea = localStorage.getItem('area') || 'bkk'; } catch(e){}
+const state = {sensors:[], camsBySensor:{}, itic:[], tw:[], events:[], twErr:null, filter:null, q:'', onlyMain:false, sel:null, me:null, area:savedArea};
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtTime = ms => new Date(ms).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
@@ -150,6 +179,8 @@ const map = L.map('map', {zoomControl:true}).setView([13.75, 100.56], 11);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap | ข้อมูล: สำนักการระบายน้ำ กทม., iTIC/Longdo'}).addTo(map);
 const sensorLayer = L.layerGroup().addTo(map);
 const camLayer = L.layerGroup().addTo(map);
+const twLayer = L.layerGroup().addTo(map);
+const evLayer = L.layerGroup().addTo(map);
 const markers = {};
 
 function sensorIcon(s){
@@ -184,11 +215,63 @@ async function loadAll(){
     });
     $('upd').textContent = `อัปเดต ${new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})} น. · ${state.sensors.length} จุดวัด · รีเฟรชอัตโนมัติทุก 5 นาที`;
     drawSensors(); render();
-    if (state.sel) showDetail(state.sel, false);
+    // ไม่เปิดรายละเอียดใหม่ทั้งหน้า (กันภาพกล้องที่กำลังเล่นสะดุด) อัปเดตแค่ตัวเลขหลัก
+    const cur = state.sel && state.sensors.find(x => 'bma:'+x.code === state.sel);
+    const hv = document.querySelector('#detail .hero .v');
+    if (cur && hv) hv.textContent = cur.status!=='malfunction' && cur.value!=null ? cur.value : '–';
   }catch(e){
     $('upd').textContent = 'โหลดข้อมูลไม่สำเร็จ';
     $('errbox').innerHTML = `<div class="err">ดึงข้อมูลจากระบบของ กทม. ไม่ได้ (${esc(e.message||e)}) ลองกดรีเฟรชอีกครั้ง หรือดูที่ <a href="https://floodbangkok.bangkok.go.th" target="_blank" rel="noopener">floodbangkok.bangkok.go.th</a></div>`;
   }
+}
+
+/* ---------- ปทุมธานี: ระดับน้ำคลอง/ประตูระบายน้ำ (ThaiWater) ---------- */
+const twDate = s => s ? new Date(s.replace(' ','T')+':00+07:00').getTime() : null;
+async function loadTw(){
+  let wl, wg;
+  try{
+    [wl, wg] = await Promise.all([
+      getJSON(TW + 'waterlevel_load?province_code=13'),
+      getJSON(TW + 'watergate_load?province_code=13'),
+    ]);
+    try { localStorage.setItem('twCache', JSON.stringify({t:Date.now(), wl, wg})); } catch(e){}
+    state.twErr = null;
+  }catch(e){
+    let c = null; try { c = JSON.parse(localStorage.getItem('twCache')); } catch(_){}
+    if (!c) { state.twErr = 'โหลดข้อมูลคลองจาก ThaiWater ไม่สำเร็จ (' + (e.message||e) + ')'; render(); return; }
+    wl = c.wl; wg = c.wg; state.twErr = 'ThaiWater ไม่ตอบสนอง แสดงข้อมูลที่จำไว้เมื่อ ' + new Date(c.t).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}) + ' น.';
+  }
+  const out = [];
+  for (const x of (wl.waterlevel_data?.data || [])) {
+    if (x.geocode?.province_code !== '13') continue;
+    const st = x.station || {};
+    out.push({ kind:'wl', id:st.id, name:st.tele_station_name?.th, river:x.river_name, amphoe:x.geocode.amphoe_name?.th, tambon:x.geocode.tumbon_name?.th,
+      lat:+st.tele_station_lat, lng:+st.tele_station_long, ts:twDate(x.waterlevel_datetime),
+      wl:parseFloat(x.waterlevel_msl), prev:parseFloat(x.waterlevel_msl_previous), bank:st.min_bank, ground:st.ground_level,
+      diff:parseFloat(x.diff_wl_bank), pct:parseFloat(x.storage_percent), sit:x.situation_level, agency:x.agency?.agency_shortname?.th });
+  }
+  for (const x of (wg.watergate_data?.data || [])) {
+    if (x.geocode?.province_code !== '13') continue;
+    const st = x.station || {}; const ts = twDate(x.watergate_datetime_in);
+    if (!ts || Date.now() - ts > 6*3600e3 || x.watergate_in == null) continue;   // ตัดสถานีที่ไม่ส่งข้อมูลแล้ว
+    out.push({ kind:'wg', id:st.id, name:st.tele_station_name?.th, amphoe:x.geocode.amphoe_name?.th, tambon:x.geocode.tumbon_name?.th,
+      lat:+st.tele_station_lat, lng:+st.tele_station_long, ts, wIn:+x.watergate_in, wOut:x.watergate_out!=null?+x.watergate_out:null, agency:x.agency?.agency_shortname?.th });
+  }
+  state.tw = out.filter(t => t.lat && t.lng && (t.kind==='wg' || isFinite(t.wl)));
+  drawTw(); render();
+}
+
+/* ---------- รายงานน้ำท่วมบนถนน (iTIC/Longdo + กรมทางหลวง) ---------- */
+async function loadEvents(){
+  try{
+    const j = await getJSON(EVENTS);
+    const now = Date.now();
+    const d = s => s ? new Date(s.replace(' ','T')+'+07:00').getTime() : null;
+    state.events = j.filter(e => e.type === '6' || e.icon === 'flood')
+      .map(e => ({ eid:e.eid, title:e.title, desc:e.description, lat:+e.latitude, lng:+e.longitude, start:d(e.start), stop:d(e.stop), by:e.contributor }))
+      .filter(e => inBox(e, REGION_BOX) && (!e.stop || e.stop >= now));
+    drawEvents(); render();
+  }catch(e){ /* ไม่บังคับ */ }
 }
 
 async function loadItic(){
@@ -214,6 +297,22 @@ function drawSensors(){
     markers[s.code] = m; m.addTo(sensorLayer);
   }
 }
+function drawTw(){
+  twLayer.clearLayers();
+  for (const t of state.tw){
+    const col = t.kind==='wl' ? (TW_SIT[t.sit]?.hex || '#8b8d88') : '#ffffff';
+    L.marker([t.lat,t.lng], {icon:L.divIcon({className:'', iconSize:[18,18], html:`<div class="twicon" style="background:${col}">${t.kind==='wg'?'⇅':''}</div>`})})
+      .bindTooltip(`${esc(t.name)}<br><b>${t.kind==='wl' ? t.wl.toFixed(2)+' ม.รทก.' : 'เหนือ '+t.wIn.toFixed(2)+' / ท้าย '+(t.wOut!=null?t.wOut.toFixed(2):'–')+' ม.'}</b>`)
+      .on('click', () => showTw(t.kind+':'+t.id)).addTo(twLayer);
+  }
+}
+function drawEvents(){
+  evLayer.clearLayers();
+  for (const e of state.events){
+    L.marker([e.lat,e.lng], {zIndexOffset:800, icon:L.divIcon({className:'', iconSize:[20,20], html:'<div class="evicon">!</div>'})})
+      .bindTooltip(esc(e.title)).on('click', () => showEvent(e.eid)).addTo(evLayer);
+  }
+}
 function drawItic(){
   camLayer.clearLayers();
   if (!$('showCams').checked) return;
@@ -223,30 +322,75 @@ function drawItic(){
   }
 }
 
+const AREA_VIEW = { bkk:[[13.75,100.56],11], pt:[[13.98,100.72],12], all:[[13.85,100.62],10] };
+function matchQ(parts){ const q = state.q.trim().toLowerCase(); return !q || parts.join(' ').toLowerCase().includes(q); }
+function areaOk(o){ return state.area==='all' || (state.area==='pt' ? inBox(o, PT_BOX) : !inBox(o, {s:13.93, n:14.3, w:100.25, e:101.05})); }
+function sortByMe(list, dflt){ if (state.me){ list.forEach(s => s.dist = distKm(state.me, s)); return list.sort((a,b)=>a.dist-b.dist); } return list.sort(dflt); }
+
 function visible(){
-  const q = state.q.trim().toLowerCase();
-  let list = state.sensors.filter(s =>
+  const list = state.sensors.filter(s =>
+    (state.area!=='pt' || inBox(s, PT_BOX)) &&
     (!state.filter || s.status === state.filter) &&
     (!state.onlyMain || s.main) &&
-    (!q || [s.name,s.road,s.district,s.code, s.isTunnel?'อุโมงค์':''].join(' ').toLowerCase().includes(q)));
-  if (state.me) list.forEach(s => s.dist = distKm(state.me, s));
-  list.sort((a,b) => state.me ? a.dist-b.dist
-    : (STATUS[a.status].rank-STATUS[b.status].rank) || ((b.value||0)-(a.value||0)) || a.name.localeCompare(b.name,'th'));
-  return list;
+    matchQ([s.name,s.road,s.district,s.code, s.isTunnel?'อุโมงค์':'']));
+  return sortByMe(list, (a,b) => (STATUS[a.status].rank-STATUS[b.status].rank) || ((b.value||0)-(a.value||0)) || a.name.localeCompare(b.name,'th'));
 }
 
-function render(){
-  const cnt = {}; state.sensors.forEach(s => cnt[s.status] = (cnt[s.status]||0)+1);
-  $('chips').innerHTML = Object.entries(STATUS).map(([k,v]) =>
-    `<button class="chip" data-k="${k}" aria-pressed="${state.filter===k}"><span class="dot" style="background:${v.color}"></span>${v.icon} ${v.label} <b>${cnt[k]||0}</b></button>`).join('');
-  const list = visible();
-  $('list').innerHTML = list.length ? list.map(s => `
-    <li data-c="${esc(s.code)}" class="${state.sel===s.code?'sel':''}">
+const distTxt = o => o.dist!=null && state.me ? ` · ${o.dist.toFixed(1)} กม.` : '';
+function liBma(s){ return `
+    <li data-c="bma:${esc(s.code)}" class="${state.sel==='bma:'+s.code?'sel':''}">
       <span class="dot" style="background:${STATUS[s.status].color}"></span>
       <div><div class="nm">${s.isTunnel?'🚇 ':''}${esc(s.name)}</div>
-        <div class="meta">เขต${esc(s.district)} · ${esc(s.code)}${s.dist!=null&&state.me?` · ${s.dist.toFixed(1)} กม.`:''}${(state.camsBySensor[s.code]||[]).length?' · 📷':''}</div></div>
+        <div class="meta">เขต${esc(s.district)} · ${esc(s.code)}${distTxt(s)}${(state.camsBySensor[s.code]||[]).length?' · 📷':''}</div></div>
       <div class="depth">${s.status!=='malfunction'&&s.value!=null?`${s.value}<small> ซม.</small>`:'<small>–</small>'}<br><span class="badge b-${s.status}">${STATUS[s.status].icon} ${STATUS[s.status].label}</span></div>
-    </li>`).join('') : '<div class="empty">ไม่พบจุดที่ตรงกับเงื่อนไข</div>';
+    </li>`; }
+function liEvent(e){ return `
+    <li data-c="ev:${esc(e.eid)}" class="${state.sel==='ev:'+e.eid?'sel':''}">
+      <span class="dot" style="background:var(--serious);border-radius:2px"></span>
+      <div><div class="nm">${esc(e.title)}</div>
+        <div class="meta">${esc((e.desc||'').slice(0,90))}${(e.desc||'').length>90?'…':''}${distTxt(e)}</div></div>
+      <div class="depth"><span class="badge b-event">! รายงาน</span><br><small>${e.start?ago(e.start):''}</small></div>
+    </li>`; }
+function liTw(t){
+  const k = t.kind+':'+t.id; const sit = TW_SIT[t.sit];
+  const val = t.kind==='wl' ? `${t.wl.toFixed(2)}<small> ม.</small>` : `${t.wIn.toFixed(2)}<small> ม.</small>`;
+  const badge = t.kind==='wl' && sit ? `<span class="badge b-${sit.cls}">${sit.icon} ${sit.label}${isFinite(t.pct)?' '+Math.round(t.pct)+'%':''}</span>` : `<span class="badge b-tw">⇅ ประตูระบายน้ำ</span>`;
+  return `
+    <li data-c="${k}" class="${state.sel===k?'sel':''}">
+      <span class="dot" style="background:${t.kind==='wl'?(sit?.hex||'#8b8d88'):'#2a6fdb'}"></span>
+      <div><div class="nm">${esc(t.name)}</div>
+        <div class="meta">อ.${esc(t.amphoe)} · ${t.kind==='wl'?'ระดับน้ำคลอง':'ระดับน้ำเหนือประตู'} · ${t.ts?ago(t.ts):''}${distTxt(t)}</div></div>
+      <div class="depth">${val}<br>${badge}</div>
+    </li>`; }
+
+function render(){
+  document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.a===state.area));
+  const base = state.sensors.filter(s => state.area!=='pt' || inBox(s, PT_BOX));
+  const cnt = {}; base.forEach(s => cnt[s.status] = (cnt[s.status]||0)+1);
+  $('chips').innerHTML = Object.entries(STATUS).map(([k,v]) =>
+    `<button class="chip" data-k="${k}" aria-pressed="${state.filter===k}"><span class="dot" style="background:${v.color}"></span>${v.icon} ${v.label} <b>${cnt[k]||0}</b></button>`).join('');
+
+  let html = '';
+  const ev = sortByMe(state.events.filter(e => areaOk(e) && matchQ([e.title,e.desc])), (a,b)=>(b.start||0)-(a.start||0));
+  if (state.area !== 'bkk'){
+    const tw = sortByMe(state.tw.filter(t => matchQ([t.name,t.river,t.amphoe,t.tambon,'คลอง'])), (a,b)=>((b.sit||0)-(a.sit||0)) || a.name.localeCompare(b.name,'th'));
+    html += `<div class="lhead">รายงานน้ำท่วมบนถนน <small>(ผู้ใช้ iTIC / กรมทางหลวง · ${ev.length} จุด)</small></div>`;
+    html += ev.length ? ev.map(liEvent).join('') : '<div class="empty">ยังไม่มีรายงานน้ำท่วมในพื้นที่นี้</div>';
+    html += `<div class="lhead">ระดับน้ำในคลองและประตูระบายน้ำ ปทุมธานี <small>(สสน. · ${tw.length} สถานี)</small></div>`;
+    if (state.twErr) html += `<div class="err">${esc(state.twErr)}</div>`;
+    html += tw.length ? tw.map(liTw).join('') : (state.twErr ? '' : '<div class="empty">กำลังโหลด…</div>');
+  }
+  const list = visible();
+  if (state.area === 'pt') html += `<div class="lhead">จุดวัดน้ำท่วมถนน กทม. ฝั่งติดลำลูกกา–ธัญบุรี <small>(${list.length} จุด)</small></div>`;
+  else if (state.area === 'all') html += `<div class="lhead">จุดวัดน้ำท่วมถนนและอุโมงค์ กทม. <small>(${list.length} จุด)</small></div>`;
+  html += list.length ? list.map(liBma).join('') : '<div class="empty">ไม่พบจุดที่ตรงกับเงื่อนไข</div>';
+  if (state.area === 'bkk' && ev.length) html += `<div class="lhead">รายงานน้ำท่วมจากผู้ใช้ในกรุงเทพฯ <small>(${ev.length})</small></div>` + ev.map(liEvent).join('');
+  if (state.area !== 'bkk') html += `<div class="lhead">แหล่งข้อมูลเพิ่มเติมของพื้นที่</div><div class="links" style="padding:8px 16px 16px;font-size:13px">
+      <a href="https://cdp.rangsitcity.go.th/" target="_blank" rel="noopener">ศูนย์ข้อมูลเมืองรังสิต (กล้อง CCTV คลองและถนน รังสิต–ลำลูกกา, รายงานน้ำท่วม)</a>
+      <a href="https://www.thaiwater.net/water/wl" target="_blank" rel="noopener">ThaiWater: ระดับน้ำทุกสถานี</a>
+      <a href="https://traffic.longdo.com/main/" target="_blank" rel="noopener">Longdo Traffic: รายงานเหตุการณ์และกล้องจราจร</a>
+      <span class="note">สายด่วน ปภ. 1784 · กรมทางหลวง 1586</span></div>`;
+  $('list').innerHTML = html;
 }
 
 /* ---------- รายละเอียดจุด ---------- */
@@ -261,7 +405,7 @@ function advice(s){
 
 function showDetail(code, pan = true){
   const s = state.sensors.find(x => x.code === code); if (!s) return;
-  state.sel = code; render();
+  state.sel = 'bma:'+code; render();
   if (pan){ map.setView([s.lat,s.lng], Math.max(map.getZoom(), 15)); }
   const st = STATUS[s.status]; const a = advice(s);
   const cams = state.camsBySensor[s.code] || [];
@@ -290,7 +434,8 @@ function showDetail(code, pan = true){
   loadHistory(s);
   cams.slice(0,4).forEach(c => $('bmacams').appendChild(bmaCam(c)));
   nearby.forEach(c => $('iticcams').appendChild(iticCam(c, c.d)));
-  d.scrollIntoView({block:'nearest'});
+  d.parentElement.scrollTop = 0;
+  if (matchMedia('(max-width:860px)').matches) d.scrollIntoView({block:'start', behavior:'smooth'});
 }
 
 /* ---------- กราฟย้อนหลัง ---------- */
@@ -299,41 +444,148 @@ async function loadHistory(s){
   try{
     const since = new Date(Date.now()-24*3600e3).toISOString();
     const j = await getJSON(API + `sensor_flood?limit=-1&sort=date_created&fields=value,timestamp&filter[sensor_name][_eq]=${encodeURIComponent(s.code)}&filter[date_created][_gte]=${encodeURIComponent(since)}`);
-    if (state.sel !== s.code || !$('chart')) return;
+    if (state.sel !== 'bma:'+s.code || !$('chart')) return;
     const pts = j.data.map(r => ({t:+r.timestamp, v:parseFloat(r.value)})).filter(p => isFinite(p.t) && isFinite(p.v));
     if (!pts.length){ box.innerHTML = '<div class="note">ไม่มีข้อมูลใน 24 ชม.</div>'; return; }
-    drawChart(box, pts);
+    drawChart(box, pts, {refs:[{v:10},{v:20}], unit:'ซม.', note:'หน่วย: ซม. · เส้นประ = 10 และ 20 ซม.'});
   }catch(e){ box.innerHTML = '<div class="note">โหลดกราฟไม่สำเร็จ</div>'; }
 }
-function drawChart(box, pts){
-  const W = 360, H = 150, P = {l:30, r:8, t:10, b:22};
-  const t0 = Date.now()-24*3600e3, t1 = Date.now();
-  const vmax = Math.max(25, ...pts.map(p=>p.v)) * 1.1;
-  const x = t => P.l + (t-t0)/(t1-t0)*(W-P.l-P.r), y = v => H-P.b - v/vmax*(H-P.t-P.b);
-  const grid = [0,10,20].concat(vmax>45?[40]:[]).filter(v=>v<vmax);
-  const ticks = [0,6,12,18,24].map(h => t0 + h*3600e3);
-  // แบ่งเส้นเมื่อข้อมูลขาดเกิน 20 นาที
-  let path = '', prev = null;
-  for (const p of pts){ path += (prev && p.t-prev.t < 20*60e3 ? 'L' : 'M') + x(p.t).toFixed(1)+','+y(p.v).toFixed(1); prev = p; }
-  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="กราฟระดับน้ำย้อนหลัง 24 ชั่วโมง">
-    ${grid.map(v=>`<line x1="${P.l}" x2="${W-P.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" ${v?'stroke-dasharray="3 3"':''}/>
-      <text x="${P.l-4}" y="${y(v)+4}" text-anchor="end" font-size="10" fill="var(--ink-3)">${v}</text>`).join('')}
-    ${ticks.map(t=>`<text x="${x(t)}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--ink-3)">${new Date(t).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</text>`).join('')}
-    <path d="${path}" fill="none" stroke="var(--series)" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+function drawChart(box, pts, opt = {}){
+  const W = 360, H = 150, P = {l:34, r:8, t:10, b:22};
+  const hours = opt.hours || 24, t1 = Date.now(), t0 = t1 - hours*3600e3;
+  const refs = opt.refs || [];
+  const series = opt.series || [{pts, color:'var(--series)', name:''}];
+  const all = series.flatMap(s => s.pts.map(p => p.v)).concat(refs.map(r => r.v));
+  let vmin, vmax;
+  if (opt.zeroBase !== false){ vmin = 0; vmax = Math.max(25, ...all) * 1.1; }
+  else { const lo = Math.min(...all), hi = Math.max(...all), pad = Math.max(0.1, (hi-lo)*0.15); vmin = lo-pad; vmax = hi+pad; }
+  const x = t => P.l + (t-t0)/(t1-t0)*(W-P.l-P.r), y = v => H-P.b - (v-vmin)/(vmax-vmin)*(H-P.t-P.b);
+  const fmtV = v => opt.zeroBase === false ? v.toFixed(2) : String(Math.round(v));
+  const grid = (opt.zeroBase === false ? [vmin+(vmax-vmin)*0.1, vmin+(vmax-vmin)*0.5, vmin+(vmax-vmin)*0.9] : [0])
+    .filter(g => refs.every(r => Math.abs(r.v-g) > (vmax-vmin)*0.12));
+  const step = hours/4, ticks = [0,1,2,3,4].map(i => t0 + i*step*3600e3);
+  const pathOf = pp => { let d = '', prev = null; for (const p of pp){ d += (prev && p.t-prev.t < 40*60e3 ? 'L' : 'M') + x(p.t).toFixed(1)+','+y(p.v).toFixed(1); prev = p; } return d; };
+  const tfmt = t => new Date(t).toLocaleString('th-TH', hours > 24 ? {day:'numeric',hour:'2-digit',minute:'2-digit'} : {hour:'2-digit',minute:'2-digit'});
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="กราฟระดับน้ำย้อนหลัง">
+    ${grid.map(v=>`<line x1="${P.l}" x2="${W-P.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/>
+      <text x="${P.l-4}" y="${y(v)+4}" text-anchor="end" font-size="10" fill="var(--ink-3)">${fmtV(v)}</text>`).join('')}
+    ${refs.map(r=>`<line x1="${P.l}" x2="${W-P.r}" y1="${y(r.v)}" y2="${y(r.v)}" stroke="var(--ink-3)" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"/>
+      <text x="${P.l-4}" y="${y(r.v)+4}" text-anchor="end" font-size="10" fill="var(--ink-3)">${r.label||fmtV(r.v)}</text>`).join('')}
+    ${ticks.map((t,i)=>`<text x="${x(t)}" y="${H-6}" text-anchor="${i===0?'start':i===4?'end':'middle'}" font-size="10" fill="var(--ink-3)">${tfmt(t)}</text>`).join('')}
+    ${series.map(s=>`<path d="${pathOf(s.pts)}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" ${s.dash?'stroke-dasharray="5 3"':''} vector-effect="non-scaling-stroke"/>`).join('')}
     <line id="xh" y1="${P.t}" y2="${H-P.b}" stroke="var(--ink-3)" stroke-width="1" visibility="hidden" vector-effect="non-scaling-stroke"/>
-    <rect x="${P.l}" y="0" width="${W-P.l-P.r}" height="${H}" fill="transparent" id="hit"/>
-  </svg><div class="tip" id="tip"></div><div class="note">หน่วย: ซม. · เส้นประ = 10 และ 20 ซม.</div>`;
+  </svg><div class="tip" id="tip"></div><div class="note">${opt.note||''}</div>`;
   const svg = box.querySelector('svg'), tip = box.querySelector('#tip'), xh = box.querySelector('#xh');
-  const move = ev => {
+  const nearest = (pp, t) => { let b = pp[0]; for (const p of pp) if (Math.abs(p.t-t) < Math.abs(b.t-t)) b = p; return b; };
+  svg.addEventListener('pointermove', ev => {
     const rc = svg.getBoundingClientRect(); const px = (ev.clientX - rc.left) / rc.width * W;
     const t = t0 + (px-P.l)/(W-P.l-P.r)*(t1-t0);
-    let best = pts[0]; for (const p of pts) if (Math.abs(p.t-t) < Math.abs(best.t-t)) best = p;
-    xh.setAttribute('x1', x(best.t)); xh.setAttribute('x2', x(best.t)); xh.setAttribute('visibility','visible');
-    tip.style.display='block'; tip.innerHTML = `<b>${best.v} ซม.</b> · ${new Date(best.t).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})} น.`;
-    const left = x(best.t)/W*rc.width; tip.style.left = Math.min(Math.max(left-50,0), rc.width-110)+'px'; tip.style.top = '0px';
-  };
-  svg.addEventListener('pointermove', move);
+    const hits = series.filter(s => s.pts.length).map(s => ({s, p:nearest(s.pts, t)}));
+    if (!hits.length) return;
+    xh.setAttribute('x1', x(hits[0].p.t)); xh.setAttribute('x2', x(hits[0].p.t)); xh.setAttribute('visibility','visible');
+    tip.style.display='block';
+    tip.innerHTML = hits.map(h => `${h.s.name?esc(h.s.name)+' ':''}<b>${opt.zeroBase===false?h.p.v.toFixed(2):h.p.v} ${opt.unit||''}</b>`).join('<br>') + ` · ${tfmt(hits[0].p.t)} น.`;
+    const left = x(hits[0].p.t)/W*rc.width; tip.style.left = Math.min(Math.max(left-tip.offsetWidth/2,0), rc.width-tip.offsetWidth)+'px'; tip.style.top = '0px';
+  });
   svg.addEventListener('pointerleave', () => { tip.style.display='none'; xh.setAttribute('visibility','hidden'); });
+}
+
+/* ---------- รายละเอียด: สถานี ThaiWater ---------- */
+const ymd = t => new Date(t + 7*3600e3).toISOString().slice(0,10);
+function showTw(key){
+  const t = state.tw.find(o => o.kind+':'+o.id === key); if (!t) return;
+  state.sel = key; render(); map.setView([t.lat,t.lng], Math.max(map.getZoom(), 14));
+  const d = $('detail'); d.classList.add('on');
+  const sit = TW_SIT[t.sit];
+  const nearBma = state.sensors.map(s=>({s,d:distKm(s,t)})).filter(o=>o.d<=5).sort((a,b)=>a.d-b.d).slice(0,4);
+  const trend = t.kind==='wl' && isFinite(t.prev) ? (t.wl>t.prev ? '▲ เพิ่มขึ้น' : t.wl<t.prev ? '▼ ลดลง' : '■ ทรงตัว') + ` ${Math.abs(t.wl-t.prev).toFixed(2)} ม. จากรอบก่อน` : '';
+  let adv;
+  if (t.kind==='wl'){
+    adv = t.sit>=5 ? {bg:'var(--crit-bg)', t:'⛔ น้ำล้นตลิ่ง ถนนเลียบคลองและซอยใกล้คลองมีโอกาสท่วมสูง ควรเลี่ยง'}
+        : t.sit===4 ? {bg:'var(--warn-bg)', t:`⚠️ น้ำในคลองสูง (${isFinite(t.diff)?'ต่ำกว่าตลิ่ง '+t.diff.toFixed(2)+' ม.':'ใกล้ตลิ่ง'}) ถ้าฝนตกเพิ่ม ถนนเลียบคลองอาจท่วม`}
+        : {bg:'var(--good-bg)', t:'✅ ระดับน้ำในคลองยังต่ำกว่าตลิ่งพอสมควร'};
+  } else adv = {bg:'var(--off-bg)', t:'⇅ ระดับน้ำด้านเหนือ/ท้ายประตูระบายน้ำ ใช้ดูแนวโน้มการระบายน้ำของคลองสายหลัก'};
+  d.innerHTML = `
+    <div class="dhead"><div><h2>${esc(t.name)}</h2>
+      <div class="meta">${t.river?esc(t.river)+' · ':''}ต.${esc(t.tambon)} อ.${esc(t.amphoe)} จ.ปทุมธานี · ${esc(t.agency||'')}</div></div>
+      <button class="btn" id="close" aria-label="ปิด">✕</button></div>
+    ${t.kind==='wl' ? `
+      <div class="hero"><span class="v">${t.wl.toFixed(2)}</span><span class="u">ม.รทก. (ระดับน้ำในคลอง)</span></div>
+      ${sit?`<span class="badge b-${sit.cls}">${sit.icon} ${sit.label}</span>`:''} <span class="meta">${trend}</span>
+      <div class="advice" style="background:${adv.bg}">${adv.t}</div>
+      <div class="grid2">
+        <div><span>ระดับตลิ่ง</span>${t.bank!=null?(+t.bank).toFixed(2)+' ม.รทก.':'–'}</div>
+        <div><span>ห่างจากตลิ่ง</span>${isFinite(t.diff)?t.diff.toFixed(2)+' ม.':'–'}</div>
+        <div><span>ความจุลำน้ำ</span>${isFinite(t.pct)?t.pct.toFixed(0)+'%':'–'}</div>
+        <div><span>ข้อมูลล่าสุด</span>${t.ts?fmtTime(t.ts)+' ('+ago(t.ts)+')':'–'}</div>
+      </div>` : `
+      <div class="grid2" style="margin-top:12px">
+        <div><span>ระดับน้ำเหนือประตู</span><b style="font-size:22px">${t.wIn.toFixed(2)}</b> ม.รทก.</div>
+        <div><span>ระดับน้ำท้ายประตู</span><b style="font-size:22px">${t.wOut!=null?t.wOut.toFixed(2):'–'}</b> ม.รทก.</div>
+        <div><span>ข้อมูลล่าสุด</span>${t.ts?fmtTime(t.ts)+' ('+ago(t.ts)+')':'–'}</div>
+      </div>
+      <div class="advice" style="background:${adv.bg}">${adv.t}</div>`}
+    <div class="sec">ระดับน้ำย้อนหลัง 3 วัน</div>
+    <div class="chart" id="chart"><div class="note">กำลังโหลด…</div></div>
+    ${nearBma.length?`<div class="sec">จุดวัดน้ำบนถนนใกล้เคียง</div>`+nearBma.map(o=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;cursor:pointer" data-go="${esc(o.s.code)}"><span>${esc(o.s.name)} <span class="meta">${o.d.toFixed(1)} กม.</span></span><span class="badge b-${o.s.status}">${STATUS[o.s.status].icon} ${o.s.status!=='malfunction'&&o.s.value!=null?o.s.value+' ซม.':STATUS[o.s.status].label}</span></div>`).join(''):''}
+    <p class="note" style="margin-top:12px">ที่มา: คลังข้อมูลน้ำแห่งชาติ (สสน.) · <a href="https://www.thaiwater.net/water/wl" target="_blank" rel="noopener">thaiwater.net</a> · ม.รทก. = เมตรจากระดับน้ำทะเลปานกลาง</p>`;
+  $('close').onclick = () => { d.classList.remove('on'); d.innerHTML=''; state.sel=null; render(); };
+  d.querySelectorAll('[data-go]').forEach(n => n.onclick = () => showDetail(n.dataset.go));
+  d.parentElement.scrollTop = 0;
+  loadTwHistory(t, key);
+}
+const graphPts = arr => {
+  const pts = (arr||[]).map(r => ({t:twDate(r.datetime), v:r.value})).filter(p => p.t && p.v != null && isFinite(p.v));
+  if (pts.length < 5) return pts;
+  const vs = pts.map(p => p.v).sort((a,b)=>a-b), med = vs[Math.floor(vs.length/2)];
+  return pts.filter(p => Math.abs(p.v - med) <= 3);   // ตัดค่าผิดปกติจากเซนเซอร์ (เช่น -12 ม.)
+};
+async function loadTwHistory(t, key){
+  const box = $('chart'); const now = Date.now();
+  try{
+    if (t.kind === 'wl'){
+      const j = await getJSON(TW + `waterlevel_graph?station_type=tele_waterlevel&station_id=${t.id}&start_date=${ymd(now-3*864e5)}&end_date=${encodeURIComponent(ymd(now)+' 23:59')}`);
+      if (state.sel !== key) return;
+      const pts = graphPts(j.data?.graph_data);
+      if (!pts.length) throw 0;
+      const refs = t.bank!=null ? [{v:+t.bank, label:'ตลิ่ง'}] : [];
+      drawChart(box, pts, {hours:72, zeroBase:false, unit:'ม.', refs, note:'หน่วย: ม.รทก. · เส้นประ = ระดับตลิ่ง'});
+    } else {
+      const j = await getJSON(TW + `watergate_graph?station_id=${t.id}&start_date=${ymd(now-3*864e5)}&end_date=${ymd(now)}`);
+      if (state.sel !== key) return;
+      const g = (j.data||[]).map(x => graphPts(x?.data?.graph_data || x?.graph_data || x?.data));
+      if (!g[0]?.length) throw 0;
+      drawChart(box, null, {hours:72, zeroBase:false, unit:'ม.', series:[{pts:g[0], color:'var(--series)', name:'เหนือ'}, ...(g[1]?.length?[{pts:g[1], color:'var(--ink-3)', name:'ท้าย', dash:true}]:[])],
+        note:'เส้นทึบ = เหนือประตู · เส้นประ = ท้ายประตู (ม.รทก.)'});
+    }
+  }catch(e){ if ($('chart') && state.sel===key) box.innerHTML = '<div class="note">ไม่มีข้อมูลย้อนหลัง หรือ ThaiWater ไม่ตอบสนองในขณะนี้</div>'; }
+}
+
+/* ---------- รายละเอียด: รายงานน้ำท่วม ---------- */
+function showEvent(eid){
+  const e = state.events.find(o => o.eid === eid); if (!e) return;
+  state.sel = 'ev:'+eid; render(); map.setView([e.lat,e.lng], Math.max(map.getZoom(), 15));
+  const d = $('detail'); d.classList.add('on');
+  const nearBma = state.sensors.map(s=>({s,d:distKm(s,e)})).filter(o=>o.d<=3).sort((a,b)=>a.d-b.d).slice(0,3);
+  const nearTw = state.tw.map(t=>({t,d:distKm(t,e)})).filter(o=>o.d<=8).sort((a,b)=>a.d-b.d).slice(0,3);
+  const nearCam = state.itic.map(c=>({...c,d:distKm(c,e)})).filter(c=>c.d<=3).sort((a,b)=>a.d-b.d).slice(0,2);
+  const depth = (e.desc||'').match(/(\d+)\s*[-–]\s*(\d+)\s*ซม|(\d+)\s*ซม/);
+  d.innerHTML = `
+    <div class="dhead"><div><h2>${esc(e.title)}</h2><div class="meta">รายงานโดย ${esc(e.by||'-')} · ${e.start?fmtTime(e.start):''}</div></div>
+      <button class="btn" id="close" aria-label="ปิด">✕</button></div>
+    ${depth?`<div class="hero"><span class="v">${depth[3]||depth[1]+'–'+depth[2]}</span><span class="u">ซม. (ตามที่ผู้รายงานระบุ)</span></div>`:''}
+    <span class="badge b-event">! รายงานน้ำท่วม</span>
+    <p style="white-space:pre-line;margin:10px 0">${esc(e.desc||'')}</p>
+    <div class="grid2"><div><span>เริ่มรายงาน</span>${e.start?fmtTime(e.start):'–'}</div><div><span>คาดว่าสิ้นสุด</span>${e.stop?fmtTime(e.stop):'–'}</div></div>
+    <div class="note">ข้อมูลจากการรายงานของผู้ใช้/หน่วยงาน ไม่ใช่เซนเซอร์ ระดับน้ำจริงอาจเปลี่ยนไปแล้ว</div>
+    ${nearCam.length?`<div class="sec">กล้องใกล้เคียง</div><div class="cams" id="evcams"></div>`:''}
+    ${nearBma.length?`<div class="sec">เซนเซอร์บนถนนใกล้เคียง</div>`+nearBma.map(o=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;cursor:pointer" data-go="bma:${esc(o.s.code)}"><span>${esc(o.s.name)} <span class="meta">${o.d.toFixed(1)} กม.</span></span><span class="badge b-${o.s.status}">${STATUS[o.s.status].icon} ${o.s.status!=='malfunction'&&o.s.value!=null?o.s.value+' ซม.':STATUS[o.s.status].label}</span></div>`).join(''):''}
+    ${nearTw.length?`<div class="sec">ระดับน้ำคลองใกล้เคียง</div>`+nearTw.map(o=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:4px 0;cursor:pointer" data-go="${o.t.kind}:${o.t.id}"><span>${esc(o.t.name)} <span class="meta">${o.d.toFixed(1)} กม.</span></span><span class="badge b-${o.t.kind==='wl'&&TW_SIT[o.t.sit]?TW_SIT[o.t.sit].cls:'malfunction'}">${o.t.kind==='wl'?o.t.wl.toFixed(2)+' ม. · '+(TW_SIT[o.t.sit]?.label||''):'ปตร. '+o.t.wIn.toFixed(2)+' ม.'}</span></div>`).join(''):''}
+    <p class="note" style="margin-top:12px"><a href="https://www.google.com/maps?q=${e.lat},${e.lng}" target="_blank" rel="noopener">เปิดตำแหน่งใน Google Maps</a> · <a href="https://traffic.longdo.com/main/" target="_blank" rel="noopener">Longdo Traffic</a></p>`;
+  $('close').onclick = () => { stopMedia(d); d.classList.remove('on'); d.innerHTML=''; state.sel=null; render(); };
+  d.querySelectorAll('[data-go]').forEach(n => n.onclick = () => { stopMedia(d); const g = n.dataset.go; g.startsWith('bma:') ? showDetail(g.slice(4)) : showTw(g); });
+  nearCam.forEach(c => $('evcams').appendChild(iticCam(c, c.d)));
+  d.parentElement.scrollTop = 0;
 }
 
 /* ---------- กล้อง ---------- */
@@ -417,14 +669,21 @@ $('near').onclick = () => {
 
 /* ---------- อีเวนต์ ---------- */
 $('chips').onclick = e => { const b = e.target.closest('.chip'); if (!b) return; state.filter = state.filter===b.dataset.k ? null : b.dataset.k; render(); };
-$('list').onclick = e => { const li = e.target.closest('li'); if (li){ stopMedia($('detail')); showDetail(li.dataset.c); } };
+$('list').onclick = e => { const li = e.target.closest('li[data-c]'); if (!li) return; stopMedia($('detail'));
+  const [k, id] = [li.dataset.c.slice(0, li.dataset.c.indexOf(':')), li.dataset.c.slice(li.dataset.c.indexOf(':')+1)];
+  if (k==='bma') showDetail(id); else if (k==='ev') showEvent(id); else showTw(li.dataset.c); };
 $('q').oninput = e => { state.q = e.target.value; render(); };
 $('onlyMain').onchange = e => { state.onlyMain = e.target.checked; render(); };
 $('showCams').onchange = drawItic;
-$('reload').onclick = loadAll;
+$('reload').onclick = () => { loadAll(); loadTw(); loadEvents(); };
+$('tabs').onclick = e => { const b = e.target.closest('button'); if (!b) return; state.area = b.dataset.a;
+  try { localStorage.setItem('area', state.area); } catch(_){}
+  const [c,z] = AREA_VIEW[state.area]; map.setView(c, z); render(); };
 
-loadAll(); loadItic();
-setInterval(loadAll, REFRESH_MS);
+{ const [c,z] = AREA_VIEW[state.area] || AREA_VIEW.bkk; map.setView(c, z); }
+loadAll(); loadItic(); loadTw(); loadEvents();
+setInterval(() => { loadAll(); loadEvents(); }, REFRESH_MS);
+setInterval(loadTw, TW_REFRESH_MS);
 </script>
 </body>
 </html>
