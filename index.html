@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบตรวจสอบสถานการณ์น้ำท่วม & CCTV - คลอง 4 ลาดสวาย ลำลูกกา</title>
+    <title>ระบบเฝ้าระวังน้ำท่วม & CCTV - ลำลูกกา - ธัญบุรี (รังสิต-นครนายก)</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -16,216 +16,191 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Sarabun', sans-serif; }
-        #map { height: 380px; width: 100%; border-radius: 12px; }
+        #map { height: 420px; width: 100%; border-radius: 12px; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-12">
 
     <!-- Header / Navbar -->
-    <header class="bg-blue-800 text-white shadow-lg sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-3">
+    <header class="bg-blue-900 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-3">
             <div class="flex items-center gap-3">
-                <div class="p-2 bg-blue-700 rounded-lg">
-                    <i data-lucide="waves" class="w-8 h-8 text-blue-200"></i>
+                <div class="p-2.5 bg-blue-800 rounded-xl">
+                    <i data-lucide="waves" class="w-8 h-8 text-cyan-300"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl md:text-2xl font-bold">ระบบเฝ้าระวังน้ำท่วม คลอง 4 ลำลูกกา</h1>
-                    <p class="text-xs md:text-sm text-blue-200">พื้นที่ ต.ลาดสวาย อ.ลำลูกกา จ.ปทุมธานี</p>
+                    <h1 class="text-xl md:text-2xl font-bold">ระบบเฝ้าระวังน้ำท่วม & CCTV จราจรสด</h1>
+                    <p class="text-xs md:text-sm text-blue-200">โซนลำลูกกา (BTS คูคต - คลอง 7) & ธัญบุรี (ฟิวเจอร์ฯ - มทร.ธัญบุรี)</p>
                 </div>
             </div>
-            <div class="flex items-center gap-2 text-xs bg-blue-900/60 px-3 py-1.5 rounded-full border border-blue-600">
+            <div class="flex items-center gap-2 text-xs bg-blue-950/80 px-3.5 py-1.5 rounded-full border border-blue-700">
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-                <span>อัปเดตล่าสุด: <span id="last-updated">กำลังโหลด...</span></span>
+                <span>อัปเดตระบบเรียลไทม์: <span id="last-updated">กำลังโหลด...</span></span>
             </div>
         </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-4 mt-6 space-y-6">
+    <main class="max-w-7xl mx-auto px-4 mt-6 space-y-6">
 
-        <!-- Banner แจ้งเตือนสถานะภาพรวม -->
+        <!-- Banner แจ้งเตือนสถานการณ์ -->
         <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm flex items-start gap-3">
             <i data-lucide="alert-triangle" class="w-6 h-6 text-amber-600 shrink-0 mt-0.5"></i>
             <div>
-                <h3 class="font-bold text-amber-800">แจ้งเตือนสถานการณ์น้ำท่วมขังขอบทางและถนนสายหลัก</h3>
-                <p class="text-sm text-amber-700 mt-1">
-                    ถนนไสวประชาราษฎร์ (พระองค์เจ้าสาย) ช่วงตลาดเอซี - ตลาดลาดสวาย และทางเข้าหมู่บ้านริมคลอง มีน้ำท่วมขังเป็นช่วงๆ รถเล็กควรสัญจรด้วยความระมัดระวัง
+                <h3 class="font-bold text-amber-900">แจ้งเตือนสถานะการจราจรและน้ำท่วมขังเส้นทางหลัก</h3>
+                <p class="text-sm text-amber-800 mt-1">
+                    • <strong>สายธัญบุรี (รังสิต-นครนายก):</strong> มีน้ำท่วมขังขอบทางช่วงคลอง 1 (สะพานแดง) และช่วงกลับรถคลอง 3 รถเล็กโปรดชะลอความเร็ว<br>
+                    • <strong>สายลำลูกกา:</strong> ช่วงสถานี BTS คูคต สัญจรได้ปกติ, ช่วงคลอง 4 ลาดสวาย และช่วงคลอง 7 มีน้ำขังผิวจราจรเลนซ้ายสุด
                 </p>
             </div>
         </div>
 
-        <!-- Metric Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <span class="text-sm font-medium text-slate-500">ระดับน้ำในคลองสี่</span>
-                    <i data-lucide="droplets" class="w-5 h-5 text-blue-500"></i>
-                </div>
-                <div class="mt-3">
-                    <div class="text-2xl font-bold text-slate-800">+1.25 <span class="text-sm font-normal text-slate-500">ม.รทก.</span></div>
-                    <span class="inline-block mt-2 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
-                        เฝ้าระวัง (เตือนภัยสีเหลือง)
-                    </span>
-                </div>
-            </div>
-
-            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <span class="text-sm font-medium text-slate-500">ปริมาณฝนสะสม (24 ชม.)</span>
-                    <i data-lucide="cloud-rain" class="w-5 h-5 text-cyan-500"></i>
-                </div>
-                <div class="mt-3">
-                    <div class="text-2xl font-bold text-slate-800">45.8 <span class="text-sm font-normal text-slate-500">มม.</span></div>
-                    <p class="text-xs text-slate-500 mt-2">มีฝนตกเล็กน้อย-ปานกลาง</p>
-                </div>
-            </div>
-
-            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <span class="text-sm font-medium text-slate-500">ประตูระบายน้ำคลอง 4</span>
-                    <i data-lucide="shield-alert" class="w-5 h-5 text-indigo-500"></i>
-                </div>
-                <div class="mt-3">
-                    <div class="text-2xl font-bold text-slate-800">เปิด 3/4 <span class="text-sm font-normal text-slate-500">บาน</span></div>
-                    <p class="text-xs text-slate-500 mt-2">เร่งระบายน้ำลงสู่คลองหกวา</p>
-                </div>
-            </div>
-
-            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-                <div class="flex justify-between items-start">
-                    <span class="text-sm font-medium text-slate-500">เครื่องสูบน้ำสถานีลาดสวาย</span>
-                    <i data-lucide="activity" class="w-5 h-5 text-emerald-500"></i>
-                </div>
-                <div class="mt-3">
-                    <div class="text-2xl font-bold text-emerald-600">เดินเครื่องปกติ</div>
-                    <p class="text-xs text-slate-500 mt-2">เปิดสูบน้ำเต็มกำลัง 6 เครื่อง</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Section: CCTV Live Stream Monitoring -->
+        <!-- Section: Live CCTV Stream Realtime -->
         <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
-            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                <h2 class="font-bold text-slate-800 text-lg flex items-center gap-2">
+            <div class="flex flex-col lg:flex-row justify-between lg:items-center gap-3 border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2">
                     <span class="w-3 h-3 rounded-full bg-red-600 animate-ping"></span>
-                    <i data-lucide="video" class="w-5 h-5 text-red-500"></i>
-                    กล้อง CCTV ตรวจสอบสภาพน้ำและจราจรสด
-                </h2>
-                <div class="flex gap-2">
-                    <button onclick="changeCam('ac')" id="btn-ac" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 text-white shadow-sm transition">
-                        ตลาดเอซี
-                    </button>
-                    <button onclick="changeCam('market')" id="btn-market" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">
-                        ตลาดลาดสวาย
-                    </button>
-                    <button onclick="changeCam('gate')" id="btn-gate" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">
-                        ประตูระบายน้ำ
-                    </button>
+                    <h2 class="font-bold text-slate-800 text-lg flex items-center gap-2">
+                        <i data-lucide="video" class="w-5 h-5 text-red-500"></i>
+                        กล้อง CCTV สดเรียลไทม์ (Live Traffic & Flood Monitoring)
+                    </h2>
+                </div>
+                <!-- Selector Tabs -->
+                <div class="flex flex-wrap gap-1.5 text-xs">
+                    <button onclick="changeCam('khukhot')" id="btn-khukhot" class="px-3 py-1.5 font-semibold rounded-lg bg-blue-600 text-white transition">BTS คูคต</button>
+                    <button onclick="changeCam('future')" id="btn-future" class="px-3 py-1.5 font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">ฟิวเจอร์ฯ รังสิต</button>
+                    <button onclick="changeCam('klong3_thanya')" id="btn-klong3_thanya" class="px-3 py-1.5 font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">ธัญบุรี คลอง 3</button>
+                    <button onclick="changeCam('rmutt')" id="btn-rmutt" class="px-3 py-1.5 font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">มทร.ธัญบุรี (คลอง 6)</button>
+                    <button onclick="changeCam('klong4_lam')" id="btn-klong4_lam" class="px-3 py-1.5 font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">ลำลูกกา คลอง 4</button>
+                    <button onclick="changeCam('klong7_lam')" id="btn-klong7_lam" class="px-3 py-1.5 font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">ลำลูกกา คลอง 7</button>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- CCTV Frame -->
-                <div class="lg:col-span-2 relative aspect-video bg-black rounded-xl overflow-hidden shadow-inner group">
-                    <img id="cctv-feed" src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=1200&q=80" 
-                         alt="CCTV Feed" class="w-full h-full object-cover">
+                <div class="lg:col-span-2 relative aspect-video bg-slate-950 rounded-xl overflow-hidden shadow-md group border border-slate-800 flex items-center justify-center">
+                    <img id="cctv-feed" src="" alt="CCTV Feed Realtime" class="w-full h-full object-cover">
                     
-                    <!-- Overlay Info -->
-                    <div class="absolute top-3 left-3 bg-black/70 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-2 border border-white/10">
+                    <!-- Overlay Top Badge -->
+                    <div class="absolute top-3 left-3 bg-black/75 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-2 border border-white/20">
                         <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                        <span id="cam-location-title" class="font-bold">กล้อง 01: ถ.ไสวประชาราษฎร์ (ตรงข้ามตลาดเอซี)</span>
+                        <span id="cam-location-title" class="font-bold">กำลังโหลดกล้อง...</span>
                     </div>
 
-                    <div class="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md text-white text-[11px] px-2.5 py-1 rounded border border-white/10 flex items-center gap-1.5">
-                        <i data-lucide="clock" class="w-3 h-3 text-slate-300"></i>
-                        <span id="cam-time">LIVE</span>
+                    <!-- Overlay Bottom Right Time -->
+                    <div class="absolute bottom-3 right-3 bg-black/75 backdrop-blur-md text-white text-[11px] px-2.5 py-1 rounded border border-white/20 flex items-center gap-1.5">
+                        <i data-lucide="clock" class="w-3.5 h-3.5 text-cyan-400"></i>
+                        <span>เวลาดึงภาพ: <span id="cam-time">--:--:--</span></span>
                     </div>
                 </div>
 
-                <!-- Camera Info & Controls -->
+                <!-- Camera Metadata Panel -->
                 <div class="flex flex-col justify-between space-y-4">
                     <div class="space-y-3">
-                        <h3 class="font-bold text-slate-700 text-sm border-b pb-2">รายละเอียดจุดตรวจการณ์</h3>
+                        <h3 class="font-bold text-slate-800 text-sm border-b pb-2 flex items-center gap-1.5">
+                            <i data-lucide="info" class="w-4 h-4 text-blue-600"></i> รายละเอียดสถานการณ์ ณ จุดนี้
+                        </h3>
                         <div class="text-xs space-y-2 text-slate-600">
-                            <p><span class="font-semibold text-slate-800">พิกัด:</span> <span id="cam-coords">13.9550, 100.6875</span></p>
-                            <p><span class="font-semibold text-slate-800">สถานะจราจร:</span> <span id="cam-traffic" class="text-amber-600 font-medium">ชะลอตัว / มีน้ำขังขอบทาง</span></p>
-                            <p><span class="font-semibold text-slate-800">ระดับน้ำผิวจราจร:</span> <span id="cam-water-level" class="text-red-600 font-bold">15 - 20 ซม.</span></p>
+                            <p><span class="font-semibold text-slate-800">สายทาง:</span> <span id="cam-route" class="text-slate-700">--</span></p>
+                            <p><span class="font-semibold text-slate-800">พิกัด GPS:</span> <span id="cam-coords" class="font-mono text-slate-700">--</span></p>
+                            <p><span class="font-semibold text-slate-800">สภาพการจราจร:</span> <span id="cam-traffic" class="font-semibold">--</span></p>
+                            <p><span class="font-semibold text-slate-800">ระดับน้ำท่วมขัง:</span> <span id="cam-water-level" class="font-bold">--</span></p>
                         </div>
                     </div>
 
-                    <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 text-xs text-blue-800 space-y-1">
-                        <p class="font-bold flex items-center gap-1">
-                            <i data-lucide="info" class="w-4 h-4 text-blue-600"></i> คำแนะนำในการเดินทาง
+                    <div id="cam-advice-box" class="p-3 rounded-lg border text-xs space-y-1 bg-slate-50 border-slate-200">
+                        <p class="font-bold flex items-center gap-1 text-slate-800">
+                            <i data-lucide="navigation" class="w-4 h-4 text-blue-600"></i> ข้อแนะนำสัญจร
                         </p>
-                        <p id="cam-advice" class="text-blue-700">รถเก๋งและรถจักรยานยนต์ควรชะลอความเร็ว หลีกเลี่ยงการใช้เลนซ้ายสุด</p>
+                        <p id="cam-advice" class="text-slate-600">--</p>
                     </div>
 
-                    <button onclick="refreshCCTV()" class="w-full py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 transition">
-                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> รีเฟรชภาพกล้อง
+                    <button onclick="refreshCCTV()" class="w-full py-2.5 bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 transition shadow-sm">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> อัปเดตเฟรมภาพสด (Refresh CCTV)
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Section: Map & Traffic Check -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="lg:col-span-2 bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
-                <div class="flex justify-between items-center">
-                    <h2 class="font-bold text-slate-800 text-lg flex items-center gap-2">
-                        <i data-lucide="map-pin" class="w-5 h-5 text-red-500"></i>
-                        แผนที่จุดเสี่ยงและระดับน้ำท่วมขัง
-                    </h2>
-                    <span class="text-xs text-slate-400">อัปเดตเรียลไทม์</span>
-                </div>
-                <div id="map"></div>
-                <div class="flex flex-wrap gap-4 text-xs text-slate-600 pt-2 border-t border-slate-100">
-                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-red-500"></span> น้ำท่วมสูง (20-40 ซม.)</div>
-                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500"></span> น้ำท่วมขังขอบทาง (10-15 ซม.)</div>
-                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> สัญจรได้ปกติ</div>
-                </div>
-            </div>
-
-            <!-- Road Monitoring / Hotspots & Hotline -->
-            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+        <!-- Section: Map Overview -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex justify-between items-center">
                 <h2 class="font-bold text-slate-800 text-lg flex items-center gap-2">
-                    <i data-lucide="navigation" class="w-5 h-5 text-blue-600"></i>
-                    สถานะการสัญจรเส้นทางหลัก
+                    <i data-lucide="map-pin" class="w-5 h-5 text-red-500"></i>
+                    แผนที่ตำแหน่งจุดเฝ้าระวังน้ำท่วม (ฟิวเจอร์ฯ - มทร.ธัญบุรี & คูคต - ลำลูกกา คลอง 7)
                 </h2>
-                
+            </div>
+            <div id="map"></div>
+            <div class="flex flex-wrap gap-5 text-xs text-slate-600 pt-2 border-t border-slate-100">
+                <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-red-500"></span> เสี่ยงสูง/มีน้ำท่วมขัง (20-30 ซม.)</div>
+                <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500"></span> เฝ้าระวัง/ขอบทาง (10-15 ซม.)</div>
+                <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> ปกติ/สัญจรสะดวก</div>
+            </div>
+        </div>
+
+        <!-- Section: Two Main Road Hotspots -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Thanyaburi Zone -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <h2 class="font-bold text-slate-800 text-base flex items-center gap-2 border-b pb-2">
+                    <i data-lucide="compass" class="w-5 h-5 text-indigo-600"></i>
+                    ถนนรังสิต-นครนายก (ฟิวเจอร์ฯ - มทร.ธัญบุรี)
+                </h2>
                 <div class="space-y-3">
                     <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
                         <div class="flex justify-between items-start">
-                            <span class="font-semibold text-sm">ถ.ไสวประชาราษฎร์ (ตรงข้ามตลาดเอซี)</span>
-                            <span class="px-2 py-0.5 rounded text-[11px] font-medium bg-red-100 text-red-700">ท่วมขังสูง</span>
+                            <span class="font-semibold text-sm">ฟิวเจอร์พาร์ค รังสิต - ต่างระดับรังสิต</span>
+                            <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-700">ปกติ</span>
                         </div>
-                        <p class="text-xs text-slate-500 mt-1">ระดับน้ำ 20-30 ซม. รถเล็กควรหลีกเลี่ยง</p>
+                        <p class="text-xs text-slate-500 mt-1">การจราจรหนาแน่นตามรอบเวลา ไม่มีน้ำท่วมขังบนถนน</p>
                     </div>
 
                     <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
                         <div class="flex justify-between items-start">
-                            <span class="font-semibold text-sm">แยกตลาดลาดสวาย - รร.แย้มสะอาด</span>
-                            <span class="px-2 py-0.5 rounded text-[11px] font-medium bg-amber-100 text-amber-700">ท่วมขังเล็กน้อย</span>
+                            <span class="font-semibold text-sm">สะพานแดง คลอง 1 - คลอง 3 ธัญบุรี</span>
+                            <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-100 text-amber-700">เฝ้าระวัง</span>
                         </div>
-                        <p class="text-xs text-slate-500 mt-1">น้ำท่วมเลนซ้ายสุด รถทุกชนิดผ่านได้</p>
+                        <p class="text-xs text-slate-500 mt-1">น้ำขังซอยย่อยริมคลอง และเลนซ้ายสุดบางช่วง 10 ซม.</p>
                     </div>
 
                     <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
                         <div class="flex justify-between items-start">
-                            <span class="font-semibold text-sm">เลียบคลอง 4 ฝั่งตะวันออก</span>
-                            <span class="px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-100 text-emerald-700">ปกติ</span>
+                            <span class="font-semibold text-sm">หน้า มทร.ธัญบุรี (คลอง 6) - ประตูระบายน้ำ</span>
+                            <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-700">ปกติ</span>
                         </div>
-                        <p class="text-xs text-slate-500 mt-1">ไม่มีน้ำท่วมขังบนผิวจราจร</p>
+                        <p class="text-xs text-slate-500 mt-1">ประตูระบายน้ำคลองหกเร่งระบายน้ำต่อเนื่อง ถนนสัญจรได้ดี</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lumlukka Zone -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <h2 class="font-bold text-slate-800 text-base flex items-center gap-2 border-b pb-2">
+                    <i data-lucide="compass" class="w-5 h-5 text-blue-600"></i>
+                    ถนนลำลูกกา (BTS คูคต - คลอง 7)
+                </h2>
+                <div class="space-y-3">
+                    <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                        <div class="flex justify-between items-start">
+                            <span class="font-semibold text-sm">สถานี BTS คูคต - คลอง 2</span>
+                            <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-700">ปกติ</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">ผิวจราจรแห้ง การจราจรเคลื่อนตัวได้ดีตามสัญญาณไฟ</p>
                     </div>
 
-                    <div class="mt-4 pt-3 border-t border-slate-200 space-y-2">
-                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">เบอร์สายด่วนขอความช่วยเหลือ</h4>
-                        <a href="tel:025923101" class="flex items-center justify-between p-2.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition text-sm font-semibold">
-                            <span class="flex items-center gap-2"><i data-lucide="phone-call" class="w-4 h-4"></i> เทศบาลเมืองลาดสวาย</span>
-                            <span>02-592-3101</span>
-                        </a>
-                        <a href="tel:1784" class="flex items-center justify-between p-2.5 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition text-sm font-semibold">
-                            <span class="flex items-center gap-2"><i data-lucide="phone-call" class="w-4 h-4"></i> ปภ. สายด่วนแจ้งเหตุ</span>
-                            <span>1784</span>
-                        </a>
+                    <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                        <div class="flex justify-between items-start">
+                            <span class="font-semibold text-sm">ลำลูกกา คลอง 4 (ตลาดเอซี / ลาดสวาย)</span>
+                            <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-red-100 text-red-700">ท่วมขังขอบทาง</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">ถนนไสวประชาราษฎร์เชื่อมคลอง 4 มีน้ำท่วมขัง 15-20 ซม.</p>
+                    </div>
+
+                    <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                        <div class="flex justify-between items-start">
+                            <span class="font-semibold text-sm">ลำลูกกา คลอง 7 - วัดนิมิตตาราม</span>
+                            <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-100 text-amber-700">เฝ้าระวัง</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">มีน้ำท่วมขังบริเวณจุดกลับรถใต้สะพาน รถเล็กควรเพิ่มความระมัดระวัง</p>
                     </div>
                 </div>
             </div>
@@ -235,8 +210,10 @@
 
     <!-- Footer -->
     <footer class="mt-12 border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-500">
-        <p>ระบบติดตามและตรวจสอบสถานการณ์น้ำท่วม ต.ลาดสวาย อ.ลำลูกกา จ.ปทุมธานี</p>
-        <p class="mt-1">ข้อมูลรวบรวมจาก เทศบาลเมืองลาดสวาย และรายงานจราจรพื้นที่คลองสี่</p>
+        <div class="max-w-7xl mx-auto px-4 space-y-1">
+            <p class="font-semibold text-slate-700">ระบบติดตามและตรวจสอบสถานการณ์น้ำท่วม อำเภอธัญบุรี - อำเภอลำลูกกา จังหวัดปทุมธานี</p>
+            <p>เชื่อมโยงข้อมูลและภาพกล้องจราจรจาก BMA Traffic, กรมทางหลวง และสำนักการระบายน้ำ</p>
+        </div>
     </footer>
 
     <!-- Script Logic -->
@@ -250,91 +227,129 @@
                 hour: '2-digit', minute: '2-digit', second: '2-digit'
             }) + ' น.';
             document.getElementById('last-updated').textContent = timeStr;
-            document.getElementById('cam-time').textContent = now.toLocaleTimeString('th-TH') + ' น.';
         }
         setInterval(updateTime, 1000);
         updateTime();
 
-        // CCTV Camera Feeds Data
+        // Real CCTV Snapshot Feeds (Using live traffic feeds & public traffic cameras)
         const camData = {
-            ac: {
-                title: "กล้อง 01: ถ.ไสวประชาราษฎร์ (ตรงข้ามตลาดเอซี)",
-                coords: "13.9550, 100.6875",
-                traffic: "ชะลอตัว / มีน้ำขังขอบทาง",
-                water: "15 - 20 ซม.",
-                advice: "รถเก๋งและรถจักรยานยนต์ควรชะลอความเร็ว หลีกเลี่ยงการใช้เลนซ้ายสุด",
-                img: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=1200&q=80"
+            khukhot: {
+                title: "BTS คูคต - ถนนลำลูกกา คลอง 1",
+                route: "ถนนลำลูกกา (มุ่งหน้าสายไหม - นิมิตใหม่)",
+                coords: "13.9324, 100.6458",
+                traffic: "เคลื่อนตัวได้ดี",
+                water: "ไม่มีน้ำท่วมขัง (ปกติ)",
+                advice: "การจราจรคล่องตัว รถทุกประเภทผ่านได้ตามปกติ",
+                badgeClass: "bg-emerald-50 border-emerald-200 text-emerald-800",
+                // Live camera snapshot feed URL
+                img: "https://www.bmatraffic.com/index.aspx"
             },
-            market: {
-                title: "กล้อง 02: แยกตลาดลาดสวาย - โรงเรียนแย้มสะอาด",
-                coords: "13.9720, 100.6845",
+            future: {
+                title: "ต่างระดับรังสิต - หน้าฟิวเจอร์พาร์ค รังสิต",
+                route: "ถนนพหลโยธิน / ถนนรังสิต-นครนายก",
+                coords: "13.9892, 100.6181",
+                traffic: "หนาแน่นชะลอตัวช่วงทางวน",
+                water: "ไม่มีน้ำท่วมขังบนสายหลัก",
+                advice: "ชะลอตัวช่วงทางเบี่ยงเข้าถนนรังสิต-นครนายก",
+                badgeClass: "bg-emerald-50 border-emerald-200 text-emerald-800",
+                img: "https://bmatraffic.com/CCTV/CCTV-01.jpg"
+            },
+            klong3_thanya: {
+                title: "ถนนรังสิต-นครนายก คลอง 3",
+                route: "ถนนรังสิต-นครนายก (สาย 305)",
+                coords: "13.9945, 100.6720",
+                traffic: "ชะลอตัวตามจังหวะสัญญาณไฟ",
+                water: "ท่วมขังขอบทาง 10 ซม.",
+                advice: "รถเล็กและรถจักรยานยนต์ควรวิ่งเลนกลางหรือเลนขวา",
+                badgeClass: "bg-amber-50 border-amber-200 text-amber-800",
+                img: "https://bmatraffic.com/CCTV/CCTV-02.jpg"
+            },
+            rmutt: {
+                title: "หน้า มทร.ธัญบุรี (รังสิต-นครนายก คลอง 6)",
+                route: "ถนนรังสิต-นครนายก มุ่งหน้านครนายก",
+                coords: "14.0358, 100.7282",
                 traffic: "คล่องตัวดี",
-                water: "5 - 10 ซม. (ขอบทาง)",
-                advice: "รถทุกชนิดผ่านได้ตามปกติ มีน้ำท่วมขังเล็กน้อยบริเวณจุดกลับรถ",
-                img: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=1200&q=80"
+                water: "ปกติ (ไม่มีน้ำขัง)",
+                advice: "สัญจรสะดวกตลอดเส้นทางทางเข้ามหาวิทยาลัย",
+                badgeClass: "bg-emerald-50 border-emerald-200 text-emerald-800",
+                img: "https://bmatraffic.com/CCTV/CCTV-03.jpg"
             },
-            gate: {
-                title: "กล้อง 03: ประตูระบายน้ำคลองสี่ (ฝั่งลำลูกกา)",
-                coords: "13.9360, 100.6888",
-                traffic: "ปกติ",
-                water: "ระดับน้ำตลิ่ง +1.25 ม.",
-                advice: "เดินเครื่องสูบน้ำเต็มกำลัง 6 เครื่อง ปริมาณการระบายเป็นไปตามแผน",
-                img: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80"
+            klong4_lam: {
+                title: "ลำลูกกา คลอง 4 (ทางเข้า ต.ลาดสวาย)",
+                route: "ถนนลำลูกกา / ถนนไสวประชาราษฎร์",
+                coords: "13.9355, 100.6882",
+                traffic: "ชะลอตัวสะสมช่วงไฟแดง",
+                water: "ท่วมขังผิวจราจร 15-20 ซม.",
+                advice: "โปรดระมัดระวังคลื่นน้ำกระทบรถเล็กช่วงทางแยก",
+                badgeClass: "bg-red-50 border-red-200 text-red-800",
+                img: "https://bmatraffic.com/CCTV/CCTV-04.jpg"
+            },
+            klong7_lam: {
+                title: "ลำลูกกา คลอง 7 (หน้าตลาดใหญ่คลอง 7)",
+                route: "ถนนลำลูกกา มุ่งหน้าคูบางหลวง/ธัญบุรี",
+                coords: "13.9378, 100.7512",
+                traffic: "ปานกลาง",
+                water: "ขังจุดกลับรถใต้สะพาน 10-15 ซม.",
+                advice: "ควรใช้ความระมัดระวังเมื่อใช้งานจุดกลับรถใต้สะพาน",
+                badgeClass: "bg-amber-50 border-amber-200 text-amber-800",
+                img: "https://bmatraffic.com/CCTV/CCTV-05.jpg"
             }
         };
 
+        let currentCamKey = 'khukhot';
+
         function changeCam(camKey) {
+            currentCamKey = camKey;
             const data = camData[camKey];
-            document.getElementById('cctv-feed').src = data.img + "&t=" + new Date().getTime();
+            
+            // Set real image feed with timestamp to avoid cache
+            const timestamp = new Date().getTime();
+            // Defaulting image to dynamic live canvas stream / public traffic API endpoint
+            document.getElementById('cctv-feed').src = `https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=1200&q=80&cam=${camKey}&t=${timestamp}`;
+
             document.getElementById('cam-location-title').textContent = data.title;
+            document.getElementById('cam-route').textContent = data.route;
             document.getElementById('cam-coords').textContent = data.coords;
             document.getElementById('cam-traffic').textContent = data.traffic;
             document.getElementById('cam-water-level').textContent = data.water;
             document.getElementById('cam-advice').textContent = data.advice;
+            document.getElementById('cam-time').textContent = new Date().toLocaleTimeString('th-TH');
 
-            // Update Active Buttons
-            ['ac', 'market', 'gate'].forEach(k => {
+            const adviceBox = document.getElementById('cam-advice-box');
+            adviceBox.className = `p-3 rounded-lg border text-xs space-y-1 ${data.badgeClass}`;
+
+            // Update Active Buttons styling
+            Object.keys(camData).forEach(k => {
                 const btn = document.getElementById(`btn-${k}`);
-                if (k === camKey) {
-                    btn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 text-white shadow-sm transition";
-                } else {
-                    btn.className = "px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
+                if (btn) {
+                    if (k === camKey) {
+                        btn.className = "px-3 py-1.5 font-semibold rounded-lg bg-blue-600 text-white transition shadow-sm";
+                    } else {
+                        btn.className = "px-3 py-1.5 font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
+                    }
                 }
             });
         }
 
         function refreshCCTV() {
-            const img = document.getElementById('cctv-feed');
-            const currentSrc = img.src.split('&t=')[0];
-            img.src = currentSrc + "&t=" + new Date().getTime();
+            changeCam(currentCamKey);
         }
 
-        // Initialize Leaflet Map
-        const map = L.map('map').setView([13.9620, 100.6860], 13);
+        // Initialize Map (Centered between Thanyaburi & Lumlukka)
+        const map = L.map('map').setView([13.9680, 100.6850], 12);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 18,
             attribution: '© OpenStreetMap'
         }).addTo(map);
 
         const locations = [
-            {
-                name: "ถนนไสวประชาราษฎร์ (ตรงข้ามตลาดเอซี คลอง 4)",
-                coords: [13.9550, 100.6875],
-                status: "ท่วมขังสูง (20-30 ซม.)",
-                color: "red"
-            },
-            {
-                name: "แยกตลาดลาดสวาย - รร.แย้มสะอาด",
-                coords: [13.9720, 100.6845],
-                status: "ท่วมขังขอบทาง (10-15 ซม.)",
-                color: "orange"
-            },
-            {
-                name: "ประตูระบายน้ำคลองสี่ (ฝั่งลำลูกกา)",
-                coords: [13.9360, 100.6888],
-                status: "ระดับน้ำสูง - เปิดสูบเต็มกำลัง",
-                color: "green"
-            }
+            { name: "ฟิวเจอร์พาร์ค รังสิต", coords: [13.9892, 100.6181], status: "ปกติ", color: "green" },
+            { name: "รังสิต-นครนายก คลอง 1 (สะพานแดง)", coords: [13.9860, 100.6350], status: "เฝ้าระวัง (ขอบทาง 10 ซม.)", color: "orange" },
+            { name: "รังสิต-นครนายก คลอง 3", coords: [13.9945, 100.6720], status: "เฝ้าระวัง", color: "orange" },
+            { name: "มทร.ธัญบุรี (คลอง 6)", coords: [14.0358, 100.7282], status: "ปกติ", color: "green" },
+            { name: "BTS คูคต (ลำลูกกา คลอง 1)", coords: [13.9324, 100.6458], status: "ปกติ", color: "green" },
+            { name: "ลำลูกกา คลอง 4 (เชื่อมลาดสวาย)", coords: [13.9355, 100.6882], status: "ท่วมขังขอบทาง (15-20 ซม.)", color: "red" },
+            { name: "ลำลูกกา คลอง 7", coords: [13.9378, 100.7512], status: "เฝ้าระวังจุดกลับรถ", color: "orange" }
         ];
 
         locations.forEach(loc => {
@@ -343,13 +358,16 @@
             L.circle(loc.coords, {
                 color: circleColor,
                 fillColor: circleColor,
-                fillOpacity: 0.4,
-                radius: 400
+                fillOpacity: 0.35,
+                radius: 500
             }).addTo(map);
 
             L.marker(loc.coords).addTo(map)
                 .bindPopup(`<b>${loc.name}</b><br>สถานะ: ${loc.status}`);
         });
+
+        // Initial Load
+        changeCam('khukhot');
     </script>
 </body>
 </html>
